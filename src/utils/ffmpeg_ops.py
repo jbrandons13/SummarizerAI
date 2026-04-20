@@ -2,7 +2,7 @@ import ffmpeg
 import os
 import tempfile
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from src.exceptions import FFmpegError
 import logging
 
@@ -46,22 +46,37 @@ def extract_frame_at(video_path: Path, timestamp: float, out_jpg_path: Path):
     except ffmpeg.Error as e:
         raise FFmpegError(f"Failed to extract frame at {timestamp}s: {e.stderr.decode()}")
 
-def cut_video_segment(video_path: Path, start: float, end: float, out_path: Path):
+def cut_video_segment(video_path: Path, start: float, end: float, out_path: Path, reencode: bool = True):
     """
-    Cut a segment from a video file. This always re-encodes the output.
+    Cut a segment from a video file.
     
     Args:
         video_path: Path to the input video.
         start: Start time in seconds.
         end: End time in seconds.
         out_path: Path to save the cut segment.
+        reencode: If True, re-encodes to H.264 CRF 20 preset fast (silent).
     """
     try:
         duration = end - start
+        input_args = {}
+        output_args = {}
+        
+        if reencode:
+            # Re-encode H.264 CRF 20 preset fast, no audio
+            output_args = {
+                'c:v': 'libx264',
+                'crf': 20,
+                'preset': 'fast',
+                'an': None
+            }
+        else:
+            output_args = {'c': 'copy'}
+
         (
             ffmpeg
             .input(str(video_path), ss=start, t=duration)
-            .output(str(out_path))
+            .output(str(out_path), **output_args)
             .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
         )
     except ffmpeg.Error as e:
@@ -99,22 +114,85 @@ def concat_videos(video_paths: List[Path], out_path: Path):
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
-def mux_video_audio(video_path: Path, audio_path: Path, out_path: Path):
-    """
-    Combine a video stream and an audio stream into a single file.
-    
-    Args:
-        video_path: Path to the video file (source for video stream).
-        audio_path: Path to the audio file (source for audio stream).
-        out_path: Path to save the muxed output.
-    """
+def generate_silence(duration: float, out_path: Path, sample_rate: int = 48000):
+    """Generate a silence WAV file of specific duration."""
     try:
-        v = ffmpeg.input(str(video_path)).video
-        a = ffmpeg.input(str(audio_path)).audio
         (
             ffmpeg
-            .output(v, a, str(out_path), shortest=None)
+            .input(f'anullsrc=r={sample_rate}:cl=stereo', f='lavfi', t=duration)
+            .output(str(out_path))
             .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
         )
     except ffmpeg.Error as e:
-        raise FFmpegError(f"Failed to mux video and audio: {e.stderr.decode()}")
+        raise FFmpegError(f"Failed to generate silence: {e.stderr.decode()}")
+
+def concat_audio_with_padding(audio_paths: List[Path], padding_duration: float, out_path: Path, sample_rate: int = 48000):
+    """
+    Concatenate audio clips with silence padding in between.
+    """
+    if not audio_paths:
+        return
+
+    # Create temporary silences and list
+    temp_files = []
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f_list:
+        list_path = f_list.name
+        
+        # Create a silence clip
+        silence_path = Path(tempfile.gettempdir()) / f"silence_{padding_duration}.wav"
+        if not silence_path.exists():
+            generate_silence(padding_duration, silence_path, sample_rate)
+            temp_files.append(silence_path)
+            
+        for i, p in enumerate(audio_paths):
+            abs_p = str(p.absolute()).replace("'", "'\\''")
+            f_list.write(f"file '{abs_p}'\n")
+            
+            # Add padding after every clip except the last one (or maybe according to user preference)
+            # User says "200ms silence padding", usually means between segments.
+            if i < len(audio_paths) - 1 and padding_duration > 0:
+                abs_s = str(silence_path.absolute()).replace("'", "'\\''")
+                f_list.write(f"file '{abs_s}'\n")
+
+    try:
+        (
+            ffmpeg
+            .input(list_path, format='concat', safe=0)
+            .output(str(out_path), acodec='aac', ab='128k', ar=sample_rate, ac=2)
+            .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
+        )
+    except ffmpeg.Error as e:
+        raise FFmpegError(f"Failed to concatenate audio: {e.stderr.decode()}")
+    finally:
+        if os.path.exists(list_path):
+            os.remove(list_path)
+
+def mux_video_audio(video_path: Path, audio_path: Path, out_path: Path, subtitle_path: Optional[Path] = None):
+    """
+    Combine video and audio, optionally burning in subtitles.
+    """
+    try:
+        vi = ffmpeg.input(str(video_path))
+        ai = ffmpeg.input(str(audio_path))
+        
+        if subtitle_path:
+            # Re-encode video to burn in subtitles
+            v = vi.video.filter('subtitles', str(subtitle_path))
+            cmd = ffmpeg.output(v, ai.audio, str(out_path), vcodec='libx264', crf=20, preset='fast', acodec='aac')
+        else:
+            # Stream copy video, re-encode audio to aac for safety in MP4
+            cmd = ffmpeg.output(vi.video, ai.audio, str(out_path), vcodec='copy', acodec='aac')
+            
+        logger.info(f"Running mux: {' '.join(cmd.get_args())}")
+        cmd.run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
+    except ffmpeg.Error as e:
+        raise FFmpegError(f"Failed to mux: {e.stderr.decode()}")
+
+def get_video_info(video_path: Path) -> dict:
+    """Get video information using ffprobe."""
+    try:
+        probe = ffmpeg.probe(str(video_path))
+        video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+        return video_stream
+    except ffmpeg.Error as e:
+        raise FFmpegError(f"Failed to probe video: {e.stderr.decode()}")

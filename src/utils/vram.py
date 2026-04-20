@@ -10,14 +10,16 @@ logger = logging.getLogger(__name__)
 class VRAMManager:
     """Manages VRAM usage by tracking peak usage and handling model unloading."""
     
-    def __init__(self, device_id: int = 0):
+    def __init__(self, device_id: int = 0, limit_gb: float = 22.0):
         """
         Initialize the VRAM manager for a specific GPU.
         
         Args:
             device_id: The index of the GPU to manage.
+            limit_gb: Soft limit in GB (currently for logging/info).
         """
         self.device_id = device_id
+        self.limit_gb = limit_gb
         try:
             pynvml.nvmlInit()
             self.handle = pynvml.nvmlDeviceGetHandleByIndex(device_id)
@@ -88,6 +90,12 @@ class VRAMManager:
             logger.info(f"Peak VRAM for phase '{phase_name}': {used_gb:.2f} GB / {total_gb:.2f} GB")
         except pynvml.NVMLError as e:
             logger.error(f"Failed to log peak usage: {e}")
+
+    def get_peak_usage(self) -> float:
+        """Get the maximum peak usage recorded across all phases."""
+        if not self.peak_usage:
+            return 0.0
+        return max(self.peak_usage.values())
 
     def __del__(self):
         """Shutdown NVML on deletion."""
