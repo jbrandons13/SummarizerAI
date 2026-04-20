@@ -1,0 +1,37 @@
+[project]
+name = "video-summarizer"
+version = "0.1.0"
+description = "AI pipeline to summarize long video podcasts into short videos with AI voiceover and semantic B-roll matching."
+authors = [
+    { name = "User", email = "user@example.com" }
+]
+dependencies = [
+    "torch==2.4.0",
+    "torchaudio==2.4.0",
+    "torchvision==0.19.0",
+    "transformers==4.45.2",
+    "accelerate==0.34.2",
+    "bitsandbytes==0.44.1",
+    "whisperx==3.3.1",
+    "scenedetect[opencv]==0.6.4",
+    "sentence-transformers==3.1.1",
+    "open-clip-torch==2.26.1",
+    "qwen-vl-utils==0.0.8",
+    "groq==0.11.0",
+    "ffmpeg-python==0.2.0",
+    "pydantic==2.9.2",
+    "pyyaml==6.0.2",
+    "tqdm==4.66.5",
+    "rich==13.8.1",
+    "pynvml==11.5.3",
+    "rouge-score==0.1.2",
+    "bert-score==0.3.13",
+    "librosa==0.10.2",
+    "soundfile==0.12.1",
+    "pyloudnorm==0.1.1"
+]
+requires-python = "==3.11.*"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

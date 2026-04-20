@@ -1,0 +1,12 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+data/intermediate/
+data/output/
+*.mp4
+*.wav
+.env
+.ipynb_checkpoints/
+.DS_Store
+*.log
