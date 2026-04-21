@@ -13,4 +13,7 @@ data/output/
 debug_p5/
 temp/
 /tmp/video_summarizer*
+models/
+results/
+results_test/
     x

@@ -158,7 +158,7 @@ def concat_audio_with_padding(audio_paths: List[Path], padding_duration: float, 
         (
             ffmpeg
             .input(list_path, format='concat', safe=0)
-            .output(str(out_path), acodec='aac', ab='128k', ar=sample_rate, ac=2)
+            .output(str(out_path), acodec='pcm_s16le', ar=sample_rate, ac=2)
             .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
         )
     except ffmpeg.Error as e:

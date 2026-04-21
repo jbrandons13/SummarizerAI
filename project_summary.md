@@ -41,4 +41,5 @@
 - [x] Phase 3: Neural Voiceover (Kokoro/F5-TTS).
 - [x] Phase 4: Semantic Visual Retrieval (3 Retrieval Arms + VRAM Safe).
 - [x] Phase 5: Video Assembly & Final Render.
+- [x] End-to-End Verification on `tiny_video.mp4` (Success).
 - [ ] Phase 6: Evaluation & Comparison.

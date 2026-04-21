@@ -40,8 +40,8 @@ class KokoroBackend(TTSBackend):
             raise ImportError("kokoro-onnx not installed. Run 'pip install kokoro-onnx onnxruntime-gpu'")
         
         # Default paths relative to project root
-        self.model_path = model_path or "models/kokoro/kokoro-v0_19.onnx"
-        self.voices_path = voices_path or "models/kokoro/voices.json"
+        self.model_path = model_path or "models/kokoro/kokoro-v1.0.onnx"
+        self.voices_path = voices_path or "models/kokoro/voices-v1.0.bin"
         self.kokoro = None
         self.sample_rate = 24000
 

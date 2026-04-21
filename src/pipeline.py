@@ -42,9 +42,17 @@ class VideoSummarizerPipeline:
         # Initialize TTS Backend
         tts_config = config.get("tts", {})
         if tts_config.get("backend") == "f5tts":
-            self.tts_backend = F5TTSBackend(self.vram_manager, tts_config)
+            f5_cfg = tts_config.get("f5tts", {})
+            self.tts_backend = F5TTSBackend(
+                model_type=f5_cfg.get("model_type", "F5-TTS"),
+                ckpt_path=f5_cfg.get("ckpt_path")
+            )
         else:
-            self.tts_backend = KokoroBackend(self.vram_manager, tts_config)
+            k_cfg = tts_config.get("kokoro", {})
+            self.tts_backend = KokoroBackend(
+                model_path=k_cfg.get("model_path"),
+                voices_path=k_cfg.get("voices_path")
+            )
 
     def run(self, video_path: Path, method: str = "siglip_direct") -> Phase5Output:
         """
@@ -59,37 +67,49 @@ class VideoSummarizerPipeline:
         
         try:
             # Phase 1: Transcription
-            logger.info("--- Starting Phase 1: Transcription ---")
-            p1 = TranscriptionPhase(self.vram_manager, self.config.get("models", {}).get("whisper", {}))
-            transcript_path = p1.run(video_path)
+            logger.info("--- Phase 1: Transcription ---")
+            transcript_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "transcript.json"
+            if transcript_path.exists():
+                logger.info(f"Skipping Phase 1, using existing transcript: {transcript_path}")
+            else:
+                p1 = TranscriptionPhase(self.vram_manager, self.config.get("models", {}).get("whisper", {}))
+                transcript_path = p1.run(video_path)
             
             # Phase 2: Summarization
-            logger.info("--- Starting Phase 2: Summarization ---")
-            p2 = Phase2Summarizer(self.llm_backend, self.config.get("summarization", {}))
-            summary_path = p2.run(transcript_path, target_duration=self.config.get("summarization", {}).get("max_output_duration_seconds", 60))
+            logger.info("--- Phase 2: Summarization ---")
+            summary_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "summary_script.json"
+            if summary_path.exists():
+                logger.info(f"Skipping Phase 2, using existing summary: {summary_path}")
+            else:
+                p2 = Phase2Summarizer(self.llm_backend, self.config.get("summarization", {}))
+                summary_path = p2.run(transcript_path, target_duration=self.config.get("summarization", {}).get("max_output_duration_seconds", 60))
             
             # Phase 3: Voiceover
-            logger.info("--- Starting Phase 3: Voiceover ---")
-            p3 = Phase3Voiceover(self.tts_backend, self.config.get("tts", {}))
-            audio_manifest_path = p3.run(summary_path)
+            logger.info("--- Phase 3: Voiceover ---")
+            audio_manifest_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "audio_manifest.json"
+            if audio_manifest_path.exists():
+                logger.info(f"Skipping Phase 3, using existing audio manifest: {audio_manifest_path}")
+            else:
+                p3 = Phase3Voiceover(self.tts_backend, self.config.get("tts", {}))
+                audio_manifest_path = p3.run(summary_path)
             
             # Phase 4: Retrieval
-            logger.info("--- Starting Phase 4: Retrieval ---")
-            # Phase4Retrieval.run returns a dict of results for all methods, but also saves them.
-            # We need the summary object for p4.
-            from src.utils.io import load_json_as_model
-            from src.schemas import SummaryScript
-            summary = load_json_as_model(summary_path, SummaryScript)
+            logger.info("--- Phase 4: Retrieval ---")
+            keyframes_manifest_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "keyframes_manifest.json"
+            retrieval_output_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / f"scene_matches_{method}.json"
             
-            p4 = Phase4Retrieval(self.vram_manager)
-            p4_results = p4.run(video_path, summary)
-            
-            retrieval_output_path = Path("data/intermediate") / video_id / f"scene_matches_{method}.json"
-            keyframes_manifest_path = Path("data/intermediate") / video_id / "keyframes_manifest.json"
+            if retrieval_output_path.exists() and keyframes_manifest_path.exists():
+                logger.info(f"Skipping Phase 4, using existing retrieval results: {retrieval_output_path}")
+            else:
+                from src.utils.io import load_json_as_model
+                from src.schemas import SummaryScript
+                summary = load_json_as_model(summary_path, SummaryScript)
+                p4 = Phase4Retrieval(self.vram_manager)
+                p4.run(video_path, summary)
             
             # Phase 5: Assembly
-            logger.info("--- Starting Phase 5: Assembly ---")
-            p5 = Phase5Assembler(self.config, self.vram_manager)
+            logger.info("--- Phase 5: Assembly ---")
+            p5 = Phase5Assembler(self.config)
             output = p5.run(
                 video_path, 
                 audio_manifest_path, 
