@@ -11,6 +11,12 @@
     - `keyframes_captions.json`: Cached Qwen-VL captions for Arm B
     - `scene_matches_{method}.json`: Match results for Arm A, B, or C
 - `video-summarizer/data/output/`: Final summary videos and provenance metadata
+- `video-summarizer/src/eval/metrics.py`: Automated metrics (ROUGE, BERTScore, CLIPScore)
+- `video-summarizer/src/eval/llm_judge.py`: LLM-as-judge (Groq Backend)
+- `video-summarizer/src/eval/run_ablation.py`: Evaluation orchestrator & statistical analyzer
+- `video-summarizer/scripts/run_eval.py`: Evaluation CLI tool
+- `video-summarizer/tests/test_eval.py`: Evaluation test suite (4/4 tests passing)
+- `video-summarizer/results/`: Directory for study results, plots, and statistics
 
 ### Key Component Signatures
 - **KeyframeExtractor** (`phase4_retrieve.py`):
@@ -23,6 +29,12 @@
   - `run(...)`: Re-encodes video segments (H.264 CRF 20), interleaves 200ms silence, and burns in subtitles.
 - **VideoSummarizerPipeline** (`pipeline.py`):
   - `run(video_path, method)`: Orchestrates Phases 1-5 with VRAM-safe transitions.
+- **AblationRunner** (`run_ablation.py`):
+  - Orchestrates comparative studies across arms using automated metrics and LLM judges.
+- **LLMJudge** (`llm_judge.py`):
+  - Standardized evaluation scoring (scale 1-5) for Information, Factualness, and Visuals.
+- **CLIPScoreCalculator** (`metrics.py`):
+  - Uses `transformers` CLIP (ViT-L/14) for visual-narrative alignment scoring.
 
 ### Environment & Dependencies (Phase 4/5)
 - **WAJIB**: `transformers` must be installed from source for SigLIP 2 support.
@@ -42,4 +54,6 @@
 - [x] Phase 4: Semantic Visual Retrieval (3 Retrieval Arms + VRAM Safe).
 - [x] Phase 5: Video Assembly & Final Render.
 - [x] End-to-End Verification on `tiny_video.mp4` (Success).
-- [ ] Phase 6: Evaluation & Comparison.
+- [x] Phase 6: Evaluation & Comparison Orchestration (ROUGE, BERTScore, CLIPScore, LLM Judge).
+- [x] Statistical Significance Testing (Paired T-test) and Automated Plotting.
+

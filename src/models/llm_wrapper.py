@@ -9,6 +9,11 @@ try:
     import groq
 except ImportError:
     groq = None
+    
+try:
+    from awq import AutoAWQForCausalLM
+except ImportError:
+    AutoAWQForCausalLM = None
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -32,14 +37,24 @@ class LocalBackend(LLMBackend):
     def _load_model(self):
         def loader():
             tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
-            # AWQ model through transformers often needs specific config if not auto-detected
-            # We'll try auto first since 'device_map' is used.
-            model = AutoModelForCausalLM.from_pretrained(
-                self.model_name,
-                device_map="auto",
-                torch_dtype="auto",
-                trust_remote_code=True
-            )
+            
+            # Use AutoAWQ if it's an AWQ model and library is available
+            if "AWQ" in self.model_name and AutoAWQForCausalLM is not None:
+                logger.info(f"Using AutoAWQ for quantized model loading: {self.model_name}")
+                model = AutoAWQForCausalLM.from_quantized(
+                    self.model_name,
+                    fuse_layers=True,
+                    trust_remote_code=True,
+                    safetensors=True
+                )
+            else:
+                logger.info(f"Using standard Transformers for model loading: {self.model_name}")
+                model = AutoModelForCausalLM.from_pretrained(
+                    self.model_name,
+                    device_map="auto",
+                    torch_dtype="auto",
+                    trust_remote_code=True
+                )
             return model, tokenizer
 
         model, tokenizer = self.vram.load_model(f"LocalLLM ({self.model_name})", loader)
@@ -59,7 +74,8 @@ class LocalBackend(LLMBackend):
             tokenize=False,
             add_generation_prompt=True
         )
-        model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
+        device = f"cuda:{self.vram.device_id}" if torch.cuda.is_available() else "cpu"
+        model_inputs = self.tokenizer([text], return_tensors="pt").to(device)
 
         generated_ids = self.model.generate(
             **model_inputs,
@@ -111,8 +127,18 @@ class GroqBackend(LLMBackend):
                 return chat_completion.choices[0].message.content
             except Exception as e:
                 # Handle 429 specifically if possible (groq.RateLimitError)
-                if "rate_limit" in str(e).lower() or (hasattr(e, "status_code") and e.status_code == 429):
-                    logger.warning(f"Groq rate limit hit (429): {e}")
+                err_msg = str(e).lower()
+                if "rate_limit" in err_msg or "tokens per day" in err_msg or (hasattr(e, "status_code") and e.status_code in [429, 413]):
+                    logger.warning(f"Groq API Limit Hit: {e}")
+                    if "tokens per day" in err_msg or "tpd" in err_msg:
+                        logger.error("CRITICAL: You have hit Groq's DAILY token limit (TPD). Retrying won't help today.")
+                        if self.local_fallback:
+                            logger.info("Falling back to LocalBackend as configured...")
+                            return self.local_fallback.generate(system_prompt, user_prompt)
+                        else:
+                            logger.error("Fix: Please switch to 'local' backend in configs/default.yaml or wait 24h.")
+                            raise e
+
                     if i < retries - 1:
                         wait_time = backoff ** (i + 1)
                         logger.info(f"Retrying in {wait_time}s...")

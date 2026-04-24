@@ -54,6 +54,18 @@ class VRAMManager:
         Returns:
             The loaded model.
         """
+        self.unload_current_model()
+        
+        logger.info(f"Loading model: {name}")
+        try:
+            self.current_model = loader_fn()
+            self.current_model_name = name
+            return self.current_model
+        except Exception as e:
+            raise VRAMError(f"Failed to load model '{name}': {e}")
+
+    def unload_current_model(self):
+        """Unload the current model and clear cache."""
         if self.current_model is not None:
             logger.info(f"Unloading model: {self.current_model_name}")
             del self.current_model
@@ -63,14 +75,6 @@ class VRAMManager:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 torch.cuda.ipc_collect()
-        
-        logger.info(f"Loading model: {name}")
-        try:
-            self.current_model = loader_fn()
-            self.current_model_name = name
-            return self.current_model
-        except Exception as e:
-            raise VRAMError(f"Failed to load model '{name}': {e}")
 
     def log_peak_usage(self, phase_name: str):
         """

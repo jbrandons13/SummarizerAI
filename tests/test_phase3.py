@@ -8,7 +8,7 @@ from src.models.tts_wrapper import TTSBackend
 from src.schemas import AudioManifest
 
 class MockTTSBackend(TTSBackend):
-    def generate(self, text: str, output_path: Path) -> float:
+    def generate(self, text: str, output_path: Path, **kwargs) -> float:
         # Create a 1-second dummy audio
         sample_rate = 24000
         duration = 1.0
@@ -52,13 +52,16 @@ def mock_script_path(tmp_path):
 
 def test_voiceover_orchestration(mock_script_path):
     config = {
-        "sample_rate": 24000,
-        "padding_ms": 200,
-        "target_lufs": -18.0,
-        "backend": "mock"
+        "tts": {
+            "sample_rate": 24000,
+            "silence_padding_ms": 200,
+            "loudness_lufs": -18.0,
+            "backend": "kokoro"
+        }
     }
     backend = MockTTSBackend()
-    orchestrator = Phase3Voiceover(backend, config)
+    orchestrator = Phase3Voiceover(config)
+    orchestrator.backend = backend # Override for testing
     
     manifest_path = orchestrator.run(mock_script_path)
     

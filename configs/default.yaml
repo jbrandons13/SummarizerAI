@@ -13,18 +13,18 @@ models:
   transcription_alignment:
     model_name: "WAV2VEC2_ASR_BASE_960H"
   sentence_transformer:
-    model_name: "all-MiniLM-L6-v2"
+    model_name: "all-MiniLM-L12-v2"
   clip:
-    model_name: "ViT-B-32"
-    pretrained: "laion2b_s34b_b79k"
+    model_name: "ViT-L-14"
   qwen_vl:
-    model_name: "Qwen/Qwen2-VL-7B-Instruct"
-  groq:
-    model_name: "llama-3.1-70b-versatile"
-    temperature: 0.1
+    # --- VISION LLM OPTIONS ---
+    # model_name: "Qwen/Qwen2.5-VL-3B-Instruct-AWQ" # Ultra Fast
+    model_name: "Qwen/Qwen2.5-VL-7B-Instruct-AWQ"   # Recommended for 3090 (Better Detail)
+  siglip:
+    model_name: "google/siglip2-so400m-patch16-naflex"
 
 summarization:
-  max_output_duration_seconds: 60
+  max_output_duration_seconds: 90
   min_segment_duration_seconds: 3.0
   relevance_threshold: 0.7
 
@@ -37,20 +37,22 @@ vram:
   limit_gb: 22.0 # Slightly under 24GB to be safe
 
 llm:
-  backend: "groq" # Options: "groq", "local"
+  backend: "local" # Options: "groq", "local"
   groq:
     model_name: "llama-3.3-70b-versatile"
     temperature: 0.1
   local:
-    model_name: "Qwen/Qwen2.5-14B-Instruct-AWQ"
+    # --- LLM OPTIONS (AWQ for VRAM efficiency) ---
+    # model_name: "Qwen/Qwen2.5-7B-Instruct-AWQ"  # Fastest
+    model_name: "Qwen/Qwen2.5-14B-Instruct-AWQ"   # Balanced (Current)
+    # model_name: "Qwen/Qwen2.5-32B-Instruct-AWQ" # Smartest (Uses ~20GB VRAM)
     temperature: 0.1
   retry_count: 3
 
 tts:
-  backend: "kokoro" # "kokoro" or "f5tts"
+  backend: "kokoro"
+  kokoro_voice: "af_heart"    # most expressive voice
+  kokoro_speed: 1.05          # slightly faster = more energetic
+  silence_padding_ms: 150     # was 200, tighter pacing
+  loudness_lufs: -18
   sample_rate: 24000
-  padding_ms: 200
-  target_lufs: -18.0
-  voices:
-    english: "af_heart"
-    indonesian: "default" # F5-TTS will use Indonesian if backend supports it

@@ -21,3 +21,7 @@ class ConfigError(VideoSummarizerError):
 class NoAudioError(VideoSummarizerError):
     """Exception raised when a video file contains no audio track."""
     pass
+
+class TTSError(VideoSummarizerError):
+    """Exception raised for text-to-speech errors."""
+    pass

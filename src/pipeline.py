@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -39,22 +40,10 @@ class VideoSummarizerPipeline:
                 model_name=llm_config.get("local", {}).get("model_name", "Qwen/Qwen2.5-14B-Instruct-AWQ")
             )
             
-        # Initialize TTS Backend
-        tts_config = config.get("tts", {})
-        if tts_config.get("backend") == "f5tts":
-            f5_cfg = tts_config.get("f5tts", {})
-            self.tts_backend = F5TTSBackend(
-                model_type=f5_cfg.get("model_type", "F5-TTS"),
-                ckpt_path=f5_cfg.get("ckpt_path")
-            )
-        else:
-            k_cfg = tts_config.get("kokoro", {})
-            self.tts_backend = KokoroBackend(
-                model_path=k_cfg.get("model_path"),
-                voices_path=k_cfg.get("voices_path")
-            )
+        # TTS Backend selection is now handled within Phase3Voiceover
+        pass
 
-    def run(self, video_path: Path, method: str = "siglip_direct") -> Phase5Output:
+    def run(self, video_path: Path, method: str = "siglip_direct", progress_callback: Any = None) -> Phase5Output:
         """
         Run the full pipeline from raw video to final summary.
         """
@@ -67,61 +56,97 @@ class VideoSummarizerPipeline:
         
         try:
             # Phase 1: Transcription
-            logger.info("--- Phase 1: Transcription ---")
+            whisper_model = self.config.get("models", {}).get("whisper", {}).get("model_size", "large-v3")
+            logger.info(f"--- Phase 1: Transcription (Model: WhisperX {whisper_model}) ---")
+            if progress_callback:
+                progress_callback.update(1, "Transcription", 0, "Starting audio extraction")
+            
             transcript_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "transcript.json"
             if transcript_path.exists():
                 logger.info(f"Skipping Phase 1, using existing transcript: {transcript_path}")
+                if progress_callback:
+                    progress_callback.update(1, "Transcription", 100, "Loaded existing transcript")
             else:
                 p1 = TranscriptionPhase(self.vram_manager, self.config.get("models", {}).get("whisper", {}))
-                transcript_path = p1.run(video_path)
+                transcript_path = p1.run(video_path, progress_callback=progress_callback)
             
             # Phase 2: Summarization
-            logger.info("--- Phase 2: Summarization ---")
+            llm_name = getattr(self.llm_backend, "model_name", "Unknown")
+            logger.info(f"--- Phase 2: Summarization (Model: {llm_name}) ---")
+            if progress_callback:
+                progress_callback.update(2, "Summarization", 0, "Calling LLM for script generation")
+            
             summary_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "summary_script.json"
             if summary_path.exists():
                 logger.info(f"Skipping Phase 2, using existing summary: {summary_path}")
+                if progress_callback:
+                    progress_callback.update(2, "Summarization", 100, "Loaded existing summary")
             else:
                 p2 = Phase2Summarizer(self.llm_backend, self.config.get("summarization", {}))
-                summary_path = p2.run(transcript_path, target_duration=self.config.get("summarization", {}).get("max_output_duration_seconds", 60))
+                summary_path = p2.run(transcript_path, target_duration=self.config.get("summarization", {}).get("max_output_duration_seconds", 60), progress_callback=progress_callback)
             
             # Phase 3: Voiceover
-            logger.info("--- Phase 3: Voiceover ---")
+            tts_backend_name = self.config.get("tts", {}).get("backend", "Unknown")
+            logger.info(f"--- Phase 3: Voiceover (Backend: {tts_backend_name}) ---")
+            if progress_callback:
+                progress_callback.update(3, "Voiceover", 0, "Generating TTS audio segments")
+            
             audio_manifest_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "audio_manifest.json"
             if audio_manifest_path.exists():
                 logger.info(f"Skipping Phase 3, using existing audio manifest: {audio_manifest_path}")
+                if progress_callback:
+                    progress_callback.update(3, "Voiceover", 100, "Loaded existing voiceover")
             else:
-                p3 = Phase3Voiceover(self.tts_backend, self.config.get("tts", {}))
-                audio_manifest_path = p3.run(summary_path)
+                p3 = Phase3Voiceover(self.config, self.vram_manager)
+                audio_manifest_path = p3.run(summary_path, progress_callback=progress_callback)
             
             # Phase 4: Retrieval
-            logger.info("--- Phase 4: Retrieval ---")
+            retrieval_models = {
+                "random": "None (Deterministic Random)",
+                "siglip_direct": "SigLIP 2 (google/siglip2-so400m-patch16-naflex)",
+                "caption_cosine": "Qwen2.5-VL-3B + Sentence-MiniLM"
+            }
+            active_retrieval = retrieval_models.get(method, method)
+            logger.info(f"--- Phase 4: Retrieval (Model: {active_retrieval}) ---")
+            if progress_callback:
+                progress_callback.update(4, "Visual Retrieval", 0, "Extracting and matching keyframes")
             keyframes_manifest_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "keyframes_manifest.json"
             retrieval_output_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / f"scene_matches_{method}.json"
             
             if retrieval_output_path.exists() and keyframes_manifest_path.exists():
                 logger.info(f"Skipping Phase 4, using existing retrieval results: {retrieval_output_path}")
+                if progress_callback:
+                    progress_callback.update(4, "Visual Retrieval", 100, "Loaded existing retrieval results")
             else:
                 from src.utils.io import load_json_as_model
                 from src.schemas import SummaryScript
                 summary = load_json_as_model(summary_path, SummaryScript)
-                p4 = Phase4Retrieval(self.vram_manager)
-                p4.run(video_path, summary)
+                p4 = Phase4Retrieval(self.config, self.vram_manager)
+                p4.run(video_path, summary, method=method, progress_callback=progress_callback)
             
             # Phase 5: Assembly
+            if progress_callback:
+                progress_callback.update(5, "Assembly", 0, "Cutting and muxing final video")
+            
             logger.info("--- Phase 5: Assembly ---")
             p5 = Phase5Assembler(self.config)
             output = p5.run(
                 video_path, 
                 audio_manifest_path, 
                 keyframes_manifest_path, 
-                retrieval_output_path
+                retrieval_output_path,
+                progress_callback=progress_callback
             )
             
-            logger.info(f"Pipeline complete in {time.time() - start_time:.2f} seconds.")
+            duration = time.time() - start_time
+            logger.info(f"Pipeline complete in {duration:.2f} seconds.")
+            
+            if progress_callback:
+                progress_callback.update(5, "Completed", 100, f"Total time: {duration:.2f}s")
+                
             return output
             
         except Exception as e:
             logger.error(f"Pipeline failed: {e}")
             raise VideoSummarizerError(f"Pipeline execution failed: {e}")
 
-import os

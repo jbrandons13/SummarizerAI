@@ -28,12 +28,13 @@ class TranscriptionPhase:
         self.compute_type = "float16"
         self.batch_size = config.get("batch_size", 16)
 
-    def run(self, video_path: Path) -> Path:
+    def run(self, video_path: Path, progress_callback: Any = None) -> Path:
         """
         Execute Phase 1: Audio extraction, transcription, and alignment.
         
         Args:
             video_path: Path to the input video.
+            progress_callback: Optional callback for progress updates.
             
         Returns:
             Path to the generated transcript.json.
@@ -50,6 +51,9 @@ class TranscriptionPhase:
 
         # 2. Extract Audio
         logger.info(f"Extracting audio from {video_path}")
+        if progress_callback:
+            progress_callback.update(1, "Transcription", 10, "Extracting audio via FFmpeg")
+            
         if not video_path.exists():
             raise FileNotFoundError(f"Video file not found: {video_path}")
         
@@ -69,15 +73,25 @@ class TranscriptionPhase:
                 compute_type=self.compute_type
             )
 
+        if progress_callback:
+            progress_callback.update(1, "Transcription", 20, "Loading WhisperX model")
+            
         model = self.vram.load_model("WhisperX Transcribe", load_whisper)
         
+        if progress_callback:
+            progress_callback.update(1, "Transcription", 40, "Running transcription")
+            
         audio = whisperx.load_audio(str(audio_path))
-        result = model.transcribe(audio, batch_size=self.batch_size)
+        language = self.config.get("language", "en")
+        result = model.transcribe(audio, batch_size=self.batch_size, language=language)
         
         language = result.get("language", "en")
         logger.info(f"Detected language: {language}")
 
         # 4. Align
+        if progress_callback:
+            progress_callback.update(1, "Transcription", 70, "Aligning word timestamps")
+            
         try:
             model_a, metadata = whisperx.load_align_model(
                 language_code=language, 
@@ -96,6 +110,9 @@ class TranscriptionPhase:
             logger.warning(f"Alignment failed: {e}. Falling back to segment-level timestamps.")
 
         # 5. Peak VRAM & Unload
+        if progress_callback:
+            progress_callback.update(1, "Transcription", 90, "Cleaning up VRAM")
+            
         self.vram.log_peak_usage("Phase 1 - Transcription")
         self.vram.load_model("None (Cleanup)", lambda: None) # Trigger unload (from vram.py logic)
 
@@ -110,7 +127,7 @@ class TranscriptionPhase:
                         start=w.get("start", seg["start"]),
                         end=w.get("end", seg["end"]),
                         score=w.get("score", 0.0)
-                    ))
+                     ))
             
             segments.append(Segment(
                 id=i,
@@ -130,5 +147,8 @@ class TranscriptionPhase:
         # 7. Save
         save_model_as_json(transcript, transcript_path)
         logger.info(f"Transcript saved to {transcript_path}")
+
+        if progress_callback:
+            progress_callback.update(1, "Transcription", 100, "Phase 1 complete")
 
         return transcript_path

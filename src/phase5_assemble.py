@@ -31,7 +31,7 @@ class Phase5Assembler:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def run(self, original_video_path: Path, audio_manifest_path: Path, 
-            keyframes_manifest_path: Path, retrieval_output_path: Path) -> Phase5Output:
+            keyframes_manifest_path: Path, retrieval_output_path: Path, progress_callback: Any = None) -> Phase5Output:
         """
         Execute Phase 5: Assembly of video and audio segments.
         """
@@ -60,13 +60,16 @@ class Phase5Assembler:
         audio_segment_paths = []
         assembled_segments = []
         
-        logger.info(f"Assembling {len(retrieval_output.matches)} segments for {video_id} using {method}")
+        total_matches = len(retrieval_output.matches)
+        logger.info(f"Assembling {total_matches} segments for {video_id} using {method}")
         
         for i, match in enumerate(retrieval_output.matches):
+            if progress_callback:
+                pct = int((i / total_matches) * 60)
+                progress_callback.update(5, "Assembly", pct, f"Cutting segment {i+1}/{total_matches}")
+                
             try:
                 # Find matching audio
-                # audio_manifest.sentences[i] should correspond to match.sentence_id
-                # but let's be safe and find by ID if possible. AudioSentence has id.
                 audio_sentence = next((s for s in audio_manifest.sentences if s.id == match.sentence_id), None)
                 if not audio_sentence:
                     logger.warning(f"No audio found for sentence {match.sentence_id}, skipping segment.")
@@ -78,14 +81,8 @@ class Phase5Assembler:
                     continue
                 
                 audio_duration = audio_sentence.duration_seconds
-                scene_available = scene.end_seconds - scene.start_seconds
-                
-                # Algorithm: Extend if needed
                 cut_start = scene.start_seconds
                 cut_end = scene.start_seconds + audio_duration
-                
-                # Ensure we don't go past original video end if possible, though 'extend' implies we might
-                # FFmpeg will handle it if we go past end (usually freezes last frame or just ends).
                 
                 video_seg_path = video_segments_dir / f"seg_{i:03d}.mp4"
                 
@@ -116,34 +113,37 @@ class Phase5Assembler:
             raise VideoSummarizerError("No segments were successfully processed.")
             
         # 3. Concatenate video segments
+        if progress_callback:
+            progress_callback.update(5, "Assembly", 70, "Concatenating video segments")
+            
         logger.info("Concatenating video segments...")
         concat_video_path = temp_dir / "concat_video_silent.mp4"
         concat_videos(video_segment_paths, concat_video_path)
         
         # 4. Concatenate audio segments with padding
+        if progress_callback:
+            progress_callback.update(5, "Assembly", 80, "Concatenating audio segments")
+            
         logger.info("Concatenating audio segments with padding...")
         concat_audio_path = temp_dir / "concat_audio.wav"
         padding_ms = self.config.get("tts", {}).get("padding_ms", 200)
         concat_audio_with_padding(audio_segment_paths, padding_ms / 1000.0, concat_audio_path)
         
         # 5. Final Mux
+        if progress_callback:
+            progress_callback.update(5, "Assembly", 90, "Muxing final video and audio")
+            
         logger.info("Muxing final video and audio...")
         final_output_path = self.output_dir / f"{video_id}_summary_{method}.mp4"
         
-        # Check for subtitle enable
         subtitle_path = None
         if self.config.get("subtitle", {}).get("enabled", False):
-            # We would need to generate an SRT first. 
-            # For now, let's look for summary_script.json and convert to SRT
-            # but the prompt says 'burn-in subtitle dari summary_script'.
-            # I'll implement a simple SRT generator if needed.
             subtitle_path = self._generate_srt(assembled_segments, temp_dir / "subtitles.srt")
 
         mux_video_audio(concat_video_path, concat_audio_path, final_output_path, subtitle_path=subtitle_path)
         
         # 6. Metadata Output
         total_duration = sum(s.source_time_range[1] - s.source_time_range[0] for s in assembled_segments)
-        # Plus padding between segments
         total_duration += (len(assembled_segments) - 1) * (padding_ms / 1000.0)
         
         peak_vram = self.vram_manager.get_peak_usage() if self.vram_manager else 0.0
@@ -166,6 +166,10 @@ class Phase5Assembler:
             shutil.rmtree(temp_dir)
             
         logger.info(f"Phase 5 complete. Final video: {final_output_path}")
+        
+        if progress_callback:
+            progress_callback.update(5, "Assembly", 100, f"Final duration: {total_duration:.2f}s")
+            
         return output_metadata
 
     def _generate_srt(self, segments: List[Phase5SegmentMetadata], out_path: Path) -> Path:

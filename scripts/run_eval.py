@@ -11,13 +11,26 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
+import warnings
+
+# Aggressive Silence
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+
 from src.eval.run_ablation import AblationRunner
 
-# Setup Logging
+# Setup Logging - ULTRA CLEAN
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
+# Silence EVERYTHING except our errors/info
+for logger_name in ["httpx", "urllib3", "absl", "transformers", "pytorch_lightning", "lightning_fabric", "scenedetect", "pyannote", "kokoro"]:
+    logging.getLogger(logger_name).setLevel(logging.ERROR)
+
 logger = logging.getLogger("EvalCLI")
 
 def main():
@@ -26,7 +39,14 @@ def main():
         from dotenv import load_dotenv
         load_dotenv()
     except ImportError:
-        pass
+        # Manual load if dotenv not installed
+        env_path = Path(".env")
+        if env_path.exists():
+            with open(env_path, "r") as f:
+                for line in f:
+                    if line.strip() and not line.startswith("#"):
+                        key, _, value = line.partition("=")
+                        os.environ[key.strip()] = value.strip()
 
     parser = argparse.ArgumentParser(description="Run Evaluation Ablation Study")
     parser.add_argument("--videos", type=str, required=True, help="Glob pattern for eval videos (e.g. 'data/eval/*.mp4')")

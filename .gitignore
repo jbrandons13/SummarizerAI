@@ -17,3 +17,7 @@ models/
 results/
 results_test/
     x
+node_modules/
+libs/
+frontend/node_modules/
+frontend/dist/

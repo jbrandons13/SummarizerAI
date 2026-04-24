@@ -32,16 +32,32 @@ class AblationRunner:
         
         all_results = []
         
-        for video_path in video_paths:
+        for i, video_path in enumerate(video_paths):
             video_id = video_path.stem
-            logger.info(f"Processing evaluation for video: {video_id}")
+            print(f"\n{'='*60}")
+            print(f" PROCESSING VIDEO {i+1}/{len(video_paths)}: {video_id}")
+            print(f"{'='*60}")
             
             # 1. Run common phases (1-3)
             # This is handled by pipeline.run internally with caching
             
             for arm in arms:
+                print(f"\n  [ARM: {arm}]")
                 logger.info(f"Running ARM: {arm} for video: {video_id}")
                 
+                # Check for existing eval result
+                video_dir = self.intermediate_dir / video_id
+                eval_result_path = video_dir / f"eval_results_{arm}.json"
+                if eval_result_path.exists():
+                    logger.info(f"Loading existing evaluation results for {video_id} - {arm}")
+                    try:
+                        with open(eval_result_path, "r") as f:
+                            result = json.load(f)
+                        all_results.append(result)
+                        continue
+                    except Exception as e:
+                        logger.warning(f"Failed to load cached eval for {video_id}-{arm}, re-running: {e}")
+
                 try:
                     # Run/Get Pipeline output
                     output = self.pipeline.run(video_path, method=arm)
@@ -61,6 +77,11 @@ class AblationRunner:
                         **metrics,
                         **judge_scores
                     }
+                    
+                    # Save individual result for later aggregation/caching
+                    with open(eval_result_path, "w") as f:
+                        json.dump(result, f, indent=2)
+                        
                     all_results.append(result)
                     
                 except Exception as e:
@@ -68,6 +89,10 @@ class AblationRunner:
 
         # 4. Save CSV
         df = pd.DataFrame(all_results)
+        if df.empty:
+            logger.error("No successful evaluations gathered. Skipping summary generation.")
+            return run_dir
+
         csv_path = run_dir / "ablation_results.csv"
         df.to_csv(csv_path, index=False)
         
@@ -171,8 +196,11 @@ class AblationRunner:
 
     def _generate_summary(self, df: pd.DataFrame, run_dir: Path):
         """Aggregate results and write summary.md."""
+        if df.empty or "arm" not in df.columns:
+            logger.warning("Empty data or missing 'arm' column. Skipping summary.")
+            return
+
         summary_path = run_dir / "summary.md"
-        
         with open(summary_path, "w") as f:
             f.write("# Ablation Study Results\n\n")
             
@@ -199,6 +227,9 @@ class AblationRunner:
 
     def _generate_plots(self, df: pd.DataFrame, run_dir: Path):
         """Create bar charts for metrics."""
+        if df.empty or "arm" not in df.columns:
+            return
+
         metrics_to_plot = ["rouge_l", "bertscore", "clipscore_mean", "information_retention", "factual_faithfulness", "visual_relevance"]
         
         fig, axes = plt.subplots(2, 3, figsize=(18, 10))

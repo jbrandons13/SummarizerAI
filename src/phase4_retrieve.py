@@ -28,7 +28,7 @@ class KeyframeExtractor:
         self.threshold = threshold
         self.min_scenes = min_scenes
 
-    def extract(self, video_path: Path, output_dir: Path) -> KeyframesManifest:
+    def extract(self, video_path: Path, output_dir: Path, progress_callback: Any = None) -> KeyframesManifest:
         """
         Detect scenes and extract 1 keyframe per scene at the midpoint.
         If scenes < min_scenes, supplement with uniform sampling.
@@ -96,11 +96,10 @@ class KeyframeExtractor:
             s.keyframe_path = f"keyframes/{kf_name}"
             
             try:
-                # We use FFmpeg for extraction as requested (quality 90)
-                # ffmpeg-python doesn't directly support quality in .run() easily without custom args
-                # but we can use -q:v 2-3 for high quality or just rely on default if needed.
-                # Actually, -qscale:v 2 is roughly 90% quality for JPEG in ffmpeg.
                 self._extract_with_quality(video_path, s.keyframe_timestamp, kf_path, quality=90)
+                if progress_callback:
+                    pct = int(10 + (s.id / len(scenes_data)) * 20)
+                    progress_callback.update(4, "Visual Retrieval", pct, f"Extracted keyframe {s.id+1}/{len(scenes_data)}")
             except Exception as e:
                 logger.error(f"Failed to extract keyframe for scene {s.id}: {e}")
                 
@@ -133,11 +132,12 @@ class KeyframeExtractor:
 class RetrievalBackend(ABC):
     """Abstract base class for retrieval arms."""
     
-    def __init__(self, vram_manager: Optional[VRAMManager] = None):
+    def __init__(self, config: Dict[str, Any], vram_manager: Optional[VRAMManager] = None):
+        self.config = config
         self.vram_manager = vram_manager
 
     @abstractmethod
-    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest) -> RetrievalOutput:
+    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest, progress_callback: Any = None) -> RetrievalOutput:
         """Match sentences to scenes."""
         pass
 
@@ -195,7 +195,7 @@ class RetrievalBackend(ABC):
 class RandomRetrieval(RetrievalBackend):
     """Arm A: Random baseline."""
     
-    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest) -> RetrievalOutput:
+    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest, progress_callback: Any = None) -> RetrievalOutput:
         # Seed RNG from video_id for determinism
         random.seed(manifest.video_id)
         
@@ -226,7 +226,7 @@ class RandomRetrieval(RetrievalBackend):
 class SigLIP2DirectRetrieval(RetrievalBackend):
     """Arm C: SigLIP 2 direct text-image retrieval."""
     
-    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest, use_timestamp_hint: bool = True) -> RetrievalOutput:
+    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest, use_timestamp_hint: bool = True, progress_callback: Any = None) -> RetrievalOutput:
         from transformers import AutoProcessor, Siglip2Model
         from PIL import Image
         
@@ -270,11 +270,16 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
                     image_features = getattr(image_features, "pooler_output", image_features[0])
                 image_features = image_features / image_features.norm(dim=-1, keepdim=True)
                 
-            # Cosine similarity with all sentences
-            similarities = (text_features @ image_features.T).squeeze().tolist()
-            if not isinstance(similarities, list):
-                similarities = [similarities]
+                # Calculate cosine similarity between all texts and this image
+                similarities = (text_features @ image_features.T).squeeze(-1).cpu().tolist()
                 
+                if not isinstance(similarities, list):
+                    similarities = [similarities]
+                
+            if progress_callback:
+                pct = int(10 + (scene_idx / len(image_paths)) * 80)
+                progress_callback.update(4, "Visual Retrieval", pct, f"SigLIP processing scene {scene_idx+1}/{len(image_paths)}")
+
             for sent_idx, score in enumerate(similarities):
                 # Apply temporal preference bonus
                 final_score = score
@@ -303,7 +308,7 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
 class CaptionCosineRetrieval(RetrievalBackend):
     """Arm B: Caption + Cosine similarity (Qwen2.5-VL + SentenceTransformer)."""
     
-    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest, language: str = "en") -> RetrievalOutput:
+    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest, language: str = "en", progress_callback: Any = None) -> RetrievalOutput:
         from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
         from qwen_vl_utils import process_vision_info
         from sentence_transformers import SentenceTransformer, util
@@ -322,12 +327,24 @@ class CaptionCosineRetrieval(RetrievalBackend):
         missing_scenes = [s for s in manifest.scenes if str(s.id) not in captions]
         
         if missing_scenes:
-            model_name = "Qwen/Qwen2.5-VL-3B-Instruct"
+            # Use model from config or fallback to 3B
+            model_name = self.config.get("models", {}).get("qwen_vl", {}).get("model_name", "Qwen/Qwen2.5-VL-3B-Instruct-AWQ")
             def loader():
-                model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-                    model_name, torch_dtype="auto", device_map="auto", 
-                    ignore_mismatched_sizes=True
-                )
+                from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
+                # For AWQ models, we still use the standard loader but ensure it doesn't 
+                # trigger the gptqmodel error by passing basic parameters or using AutoAWQ
+                if "AWQ" in model_name:
+                    from awq import AutoAWQForCausalLM
+                    # We load as CausalLM but we must be careful with vision features
+                    model = AutoAWQForCausalLM.from_quantized(
+                        model_name, fuse_layers=False, 
+                        trust_remote_code=True, device_map="auto"
+                    )
+                else:
+                    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+                        model_name, torch_dtype="auto", device_map="auto", 
+                        trust_remote_code=True
+                    )
                 processor = AutoProcessor.from_pretrained(model_name)
                 return model, processor
             
@@ -365,6 +382,10 @@ class CaptionCosineRetrieval(RetrievalBackend):
                 )[0]
                 
                 captions[str(scene.id)] = output_text
+                
+                if progress_callback:
+                    pct = int(10 + (scene.id / len(missing_scenes)) * 70)
+                    progress_callback.update(4, "Visual Retrieval", pct, f"Qwen captioning scene {scene.id+1}/{len(missing_scenes)}")
                 
             # Unload Qwen
             self.vram_manager.load_model("None (Cleanup)", lambda: None)
@@ -415,11 +436,12 @@ class CaptionCosineRetrieval(RetrievalBackend):
 class Phase4Retrieval:
     """Orchestrator for Phase 4: Semantic Visual Retrieval."""
     
-    def __init__(self, vram_manager: VRAMManager):
+    def __init__(self, config: Dict[str, Any], vram_manager: VRAMManager):
+        self.config = config
         self.vram_manager = vram_manager
         self.extractor = KeyframeExtractor()
         
-    def run(self, video_path: Path, summary: SummaryScript, language: str = "en") -> Dict[str, RetrievalOutput]:
+    def run(self, video_path: Path, summary: SummaryScript, language: str = "en", method: str = "siglip_direct", progress_callback: Any = None) -> Dict[str, RetrievalOutput]:
         video_id = video_path.stem
         output_dir = Path("data/intermediate") / video_id
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -429,28 +451,41 @@ class Phase4Retrieval:
         if manifest_path.exists():
             with open(manifest_path, "r") as f:
                 manifest = KeyframesManifest.model_validate_json(f.read())
+            if progress_callback:
+                progress_callback.update(4, "Visual Retrieval", 10, "Loaded existing keyframes")
         else:
-            manifest = self.extractor.extract(video_path, output_dir)
+            if progress_callback:
+                progress_callback.update(4, "Visual Retrieval", 5, "Starting scene detection")
+            manifest = self.extractor.extract(video_path, output_dir, progress_callback=progress_callback)
             
         # 2. Retrieval Arms
         results = {}
         
-        # Arm A
-        arm_a = RandomRetrieval(self.vram_manager)
-        results["random"] = arm_a.retrieve(summary, manifest)
+        # Based on method, run specific arm or all
+        arms_to_run = [method] if method != "all" else ["random", "siglip_direct", "caption_cosine"]
         
-        # Arm C
-        arm_c = SigLIP2DirectRetrieval(self.vram_manager)
-        results["siglip_direct"] = arm_c.retrieve(summary, manifest)
-        
-        # Arm B
-        arm_b = CaptionCosineRetrieval(self.vram_manager)
-        results["caption_cosine"] = arm_b.retrieve(summary, manifest, language=language)
-        
+        total_arms = len(arms_to_run)
+        for i, arm_name in enumerate(arms_to_run):
+            if progress_callback:
+                progress_callback.update(4, "Visual Retrieval", 40 + int((i/total_arms)*50), f"Running retrieval arm: {arm_name}")
+                
+            if arm_name == "random":
+                arm = RandomRetrieval(self.config, self.vram_manager)
+                results["random"] = arm.retrieve(summary, manifest)
+            elif arm_name == "siglip_direct":
+                arm = SigLIP2DirectRetrieval(self.config, self.vram_manager)
+                results["siglip_direct"] = arm.retrieve(summary, manifest)
+            elif arm_name == "caption_cosine":
+                arm = CaptionCosineRetrieval(self.config, self.vram_manager)
+                results["caption_cosine"] = arm.retrieve(summary, manifest, language=language)
+
         # Save results
-        for method, output in results.items():
-            out_file = output_dir / f"scene_matches_{method}.json"
+        for m, output in results.items():
+            out_file = output_dir / f"scene_matches_{m}.json"
             with open(out_file, "w") as f:
                 f.write(output.model_dump_json(indent=2))
+                
+        if progress_callback:
+            progress_callback.update(4, "Visual Retrieval", 100, "Phase 4 complete")
                 
         return results
