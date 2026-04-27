@@ -189,22 +189,3 @@ class F5TTSBackend(TTSBackend):
         sf.write(output_path, samples, self.target_sr)
         return len(samples) / self.target_sr
 
-class ChatterboxBackend(TTSBackend):
-    def __init__(self, config: Dict[str, Any], vram_manager: Optional[VRAMManager] = None):
-        raise NotImplementedError(
-            "Chatterbox installation failed (dependency issues). "
-            "Using default 'kokoro' backend instead."
-        )
-
-    def generate(self, text: str, output_path: Path) -> float:
-        return 0.0
-
-class OrpheusBackend(TTSBackend):
-    def __init__(self, config: Dict[str, Any], vram_manager: Optional[VRAMManager] = None):
-        raise NotImplementedError(
-            "Orpheus requires vLLM which is too heavy. "
-            "Use 'kokoro' or 'chatterbox' backend instead."
-        )
-
-    def generate(self, text: str, output_path: Path) -> float:
-        return 0.0

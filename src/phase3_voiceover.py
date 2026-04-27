@@ -7,7 +7,7 @@ import numpy as np
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeElapsedColumn
 
 from src.schemas import SummaryScript, AudioManifest, AudioSentence
-from src.models.tts_wrapper import TTSBackend, KokoroBackend, F5TTSBackend, ChatterboxBackend, OrpheusBackend
+from src.models.tts_wrapper import TTSBackend, KokoroBackend, F5TTSBackend
 from src.utils.io import load_json_as_model, save_model_as_json
 from src.utils.vram import VRAMManager
 from src.exceptions import TTSError
@@ -51,10 +51,6 @@ class Phase3Voiceover:
             return KokoroBackend(config)
         elif backend_name == "f5-tts":
             return F5TTSBackend()
-        elif backend_name == "chatterbox":
-            return ChatterboxBackend(config, self.vram_manager)
-        elif backend_name == "orpheus":
-            return OrpheusBackend(config, self.vram_manager)
         else:
             raise TTSError(f"Unknown TTS backend: {backend_name}")
 

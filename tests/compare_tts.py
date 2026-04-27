@@ -23,7 +23,7 @@ test_sentences = [
 vram_manager = VRAMManager(device_id=0)
 
 # Test each backend
-for backend_name in ["kokoro", "f5-tts", "chatterbox", "orpheus"]:
+for backend_name in ["kokoro", "f5-tts"]:
     print(f"\n>>> Testing Backend: {backend_name}")
     
     # Load config
