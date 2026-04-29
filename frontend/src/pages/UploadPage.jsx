@@ -8,12 +8,11 @@ export default function UploadPage({ onStartJob, onError }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState({
-    target_duration: 90,
-    retrieval_method: 'siglip_direct',
+    retrieval_method: 'all',
     style: 'informative',
     subtitles: 'none',
     tts_backend: 'kokoro',
-    llm_backend: 'groq'
+    llm_backend: 'local'
   });
 
   const handleGenerate = async () => {
@@ -48,7 +47,7 @@ export default function UploadPage({ onStartJob, onError }) {
               </svg>
             </div>
             <div className="text-xs text-blue-700 leading-relaxed">
-              <strong>Tip:</strong> SigLIP Direct retrieval provides the most semantically relevant shots but requires more VRAM. For baseline testing, try the Random method.
+              <strong>Info:</strong> Default mode is <strong>Compare all 3</strong> (Ablation Mode). The system will run all three methods so you can compare the results in the Dashboard.
             </div>
           </div>
 
@@ -61,18 +60,23 @@ export default function UploadPage({ onStartJob, onError }) {
           <button 
             disabled={!file || loading}
             onClick={handleGenerate}
-            className="w-full btn btn-primary py-3 active:scale-[0.98] transition-transform"
+            className="w-full btn-premium py-4 rounded-xl font-bold flex items-center justify-center space-x-2 group"
           >
             {loading ? (
-              <div className="flex items-center space-x-2">
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <div className="flex items-center space-x-3">
+                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>Preparing model...</span>
+                <span className="tracking-wide">AI PREPARING ENGINE...</span>
               </div>
             ) : (
-              <span>Generate Summary</span>
+              <>
+                <svg className="w-5 h-5 transform group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="tracking-tight uppercase">Generate Magic Summary</span>
+              </>
             )}
           </button>
         </div>

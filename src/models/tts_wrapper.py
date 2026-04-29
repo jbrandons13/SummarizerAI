@@ -169,11 +169,42 @@ class F5TTSBackend(TTSBackend):
             self._load_model()
         
         from f5_tts.infer.utils_infer import infer_process
+        from huggingface_hub import hf_hub_download
         
         if ref_audio is None:
-            msg = "F5-TTS requires a reference audio file for generation."
-            logger.error(msg)
-            raise ValueError(msg)
+            logger.info("No reference audio provided for F5-TTS. Downloading default reference...")
+            # Use a known clean reference audio from a public datasets/models
+            try:
+                # Using a 24kHz sample from F5-TTS examples or similar
+                # Attempting to download from a known stable repo
+                ref_audio = hf_hub_download(repo_id="SWivid/F5-TTS", filename="tests/test.wav", repo_type="space")
+            except Exception as e:
+                logger.warning(f"Failed to download default reference audio: {e}. Attempting local exhaustive search.")
+                
+                # Logical search for any usable wav in the workspace
+                project_root = Path(__file__).parent.parent.parent
+                search_paths = [
+                    project_root / "test_bella.wav",
+                    project_root / "video-summarizer/test_bella.wav",
+                    project_root / "tests/fixtures/ref_audio.wav"
+                ]
+                
+                for p in search_paths:
+                    if p.exists():
+                        ref_audio = str(p)
+                        logger.info(f"Found fallback reference audio at {ref_audio}")
+                        break
+                
+                if not ref_audio or not isinstance(ref_audio, str):
+                    # Final attempt: find *any* wav in data or results
+                    any_wavs = list(project_root.glob("**/*.wav"))
+                    if any_wavs:
+                        ref_audio = str(any_wavs[0])
+                        logger.info(f"Using random fallback audio found at {ref_audio}")
+                    else:
+                        msg = "F5-TTS requires a reference audio file (.wav) for generation. Please place a file named 'test_bella.wav' in the project root."
+                        logger.error(msg)
+                        raise ValueError(msg)
             
         samples, sr, _ = infer_process(
             ref_audio, ref_text, text, 

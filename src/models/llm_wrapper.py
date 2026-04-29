@@ -61,7 +61,7 @@ class LocalBackend(LLMBackend):
         self.model = model
         self.tokenizer = tokenizer
 
-    def generate(self, system_prompt: str, user_prompt: str) -> str:
+    def generate(self, system_prompt: str, user_prompt: str, max_new_tokens: int = 4096) -> str:
         if self.model is None:
             self._load_model()
         
@@ -79,7 +79,7 @@ class LocalBackend(LLMBackend):
 
         generated_ids = self.model.generate(
             **model_inputs,
-            max_new_tokens=2048,
+            max_new_tokens=max_new_tokens,
             temperature=0.1,
             do_sample=False
         )
@@ -108,7 +108,7 @@ class GroqBackend(LLMBackend):
         self.model_name = model_name
         self.local_fallback = local_fallback
 
-    def generate(self, system_prompt: str, user_prompt: str) -> str:
+    def generate(self, system_prompt: str, user_prompt: str, max_new_tokens: int = 4096) -> str:
         retries = 3
         backoff = 2
         for i in range(retries):
@@ -120,13 +120,12 @@ class GroqBackend(LLMBackend):
                     ],
                     model=self.model_name,
                     temperature=0.1,
-                    max_tokens=2048,
+                    max_tokens=max_new_tokens,
                 )
                 usage = chat_completion.usage
                 logger.info(f"Groq ({self.model_name}) usage: {usage.prompt_tokens} prompt, {usage.completion_tokens} completion tokens.")
                 return chat_completion.choices[0].message.content
             except Exception as e:
-                # Handle 429 specifically if possible (groq.RateLimitError)
                 err_msg = str(e).lower()
                 if "rate_limit" in err_msg or "tokens per day" in err_msg or (hasattr(e, "status_code") and e.status_code in [429, 413]):
                     logger.warning(f"Groq API Limit Hit: {e}")
@@ -148,6 +147,11 @@ class GroqBackend(LLMBackend):
                         logger.warning("Falling back to LocalBackend due to Groq rate limits.")
                         return self.local_fallback.generate(system_prompt, user_prompt)
                 
+                # Fail fast on auth errors
+                if "401" in err_msg or "invalid api key" in err_msg or "invalid_api_key" in err_msg or (hasattr(e, "status_code") and e.status_code == 401):
+                    logger.error(f"Groq API Error: Invalid API Key. Setup your GROQ_API_KEY environment variable. Error: {e}")
+                    raise e
+
                 logger.error(f"Groq API error (Attempt {i+1}/{retries}): {e}")
                 if i == retries - 1:
                     raise e

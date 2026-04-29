@@ -46,14 +46,12 @@ class VRAMManager:
     def load_model(self, name: str, loader_fn: Callable[[], Any]) -> Any:
         """
         Unload the previous model, clear cache, and load a new model.
-        
-        Args:
-            name: Description/name of the model being loaded.
-            loader_fn: A function that returns the loaded model.
-            
-        Returns:
-            The loaded model.
+        Skip the cycle if the model with the same name is already loaded.
         """
+        if self.current_model_name == name and self.current_model is not None:
+            logger.info(f"Model '{name}' already loaded. Skipping reload.")
+            return self.current_model
+
         self.unload_current_model()
         
         logger.info(f"Loading model: {name}")

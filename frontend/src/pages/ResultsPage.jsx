@@ -48,6 +48,13 @@ export default function ResultsPage({ jobId }) {
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-gray-900">Summarization Complete</h1>
           <p className="text-sm text-gray-500">Multimodal pipeline finished. Review findings below.</p>
+          {data.config && (
+            <div className="flex gap-2 mt-2">
+              <span className="badge badge-blue">LLM: {data.config.llm_backend}</span>
+              <span className="badge badge-purple">TTS: {data.config.tts_backend}</span>
+              <span className="badge badge-green">Retrieval: {data.config.retrieval_method}</span>
+            </div>
+          )}
         </div>
         <div className="flex space-x-2">
            <button className="btn btn-primary">

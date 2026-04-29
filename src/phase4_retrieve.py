@@ -232,6 +232,9 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
         
         model_name = "google/siglip2-so400m-patch16-naflex"
         
+        if progress_callback:
+            progress_callback.update(4, "Visual Retrieval", 30, "Preparing SigLIP 2 engine...")
+
         def loader():
             processor = AutoProcessor.from_pretrained(model_name, trust_remote_code=True)
             model = Siglip2Model.from_pretrained(
@@ -241,6 +244,9 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
 
         model, processor = self.vram_manager.load_model(f"SigLIP2 ({model_name})", loader)
         
+        if progress_callback:
+            progress_callback.update(4, "Visual Retrieval", 45, "Encoding summary script...")
+
         num_sentences = len(summary.sentences)
         num_scenes = len(manifest.scenes)
         

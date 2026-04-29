@@ -23,7 +23,7 @@ export async function submitVideo(file, settings) {
 }
 
 export async function getStatus(jobId) {
-  const res = await fetch(`${API_BASE}/status/${jobId}`);
+  const res = await fetch(`${API_BASE}/status/${jobId}?t=${Date.now()}`);
   if (!res.ok) throw new Error('Failed to fetch status');
   return res.json();
 }
@@ -66,4 +66,19 @@ export async function exportEval() {
   const res = await fetch(`${API_BASE}/eval/export`);
   if (!res.ok) throw new Error('Failed to export evaluation');
   return res.blob();
+}
+export async function deleteJob(jobId) {
+  const res = await fetch(`${API_BASE}/result/${jobId}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete job');
+  return res.json();
+}
+
+export async function cancelJob(jobId) {
+  const res = await fetch(`${API_BASE}/cancel/${jobId}`, {
+    method: 'POST'
+  });
+  if (!res.ok) throw new Error('Failed to cancel job');
+  return res.json();
 }

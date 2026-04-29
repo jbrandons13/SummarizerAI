@@ -178,10 +178,10 @@ def mux_video_audio(video_path: Path, audio_path: Path, out_path: Path, subtitle
         if subtitle_path:
             # Re-encode video to burn in subtitles
             v = vi.video.filter('subtitles', str(subtitle_path))
-            cmd = ffmpeg.output(v, ai.audio, str(out_path), vcodec='libx264', crf=20, preset='fast', acodec='aac')
+            cmd = ffmpeg.output(v, ai.audio, str(out_path), vcodec='libx264', crf=20, preset='fast', acodec='aac', movflags='faststart')
         else:
             # Stream copy video, re-encode audio to aac for safety in MP4
-            cmd = ffmpeg.output(vi.video, ai.audio, str(out_path), vcodec='copy', acodec='aac')
+            cmd = ffmpeg.output(vi.video, ai.audio, str(out_path), vcodec='copy', acodec='aac', movflags='faststart')
             
         logger.info(f"Running mux: {' '.join(cmd.get_args())}")
         cmd.run(overwrite_output=True, capture_stdout=True, capture_stderr=True)

@@ -14,6 +14,7 @@ from src.eval.metrics import compute_rouge, compute_bertscore, compute_clipscore
 from src.eval.llm_judge import LLMJudge
 from src.utils.io import load_json_as_model
 from src.schemas import SummaryScript, RetrievalOutput, KeyframesManifest, Phase5Output
+from src.exceptions import JobCancelledError
 
 logger = logging.getLogger(__name__)
 
@@ -25,15 +26,17 @@ class AblationRunner:
         self.results_dir = Path(config.get("paths", {}).get("results_dir", "results"))
         self.intermediate_dir = Path(config.get("paths", {}).get("intermediate_dir", "data/intermediate"))
 
-    def run(self, video_paths: List[Path], arms: List[str]) -> Path:
+    def run(self, video_paths: List[Path], arms: List[str], progress_callback: Any = None, original_filename: str = None) -> tuple[Path, Dict[str, Dict[str, str]]]:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         run_dir = self.results_dir / timestamp
         run_dir.mkdir(parents=True, exist_ok=True)
         
         all_results = []
+        out_paths_global = {}
         
         for i, video_path in enumerate(video_paths):
             video_id = video_path.stem
+            out_paths_global[video_id] = {}
             print(f"\n{'='*60}")
             print(f" PROCESSING VIDEO {i+1}/{len(video_paths)}: {video_id}")
             print(f"{'='*60}")
@@ -42,6 +45,13 @@ class AblationRunner:
             # This is handled by pipeline.run internally with caching
             
             for arm in arms:
+                # Check for cancellation between arms
+                if progress_callback and hasattr(progress_callback, "job_id"):
+                    job = progress_callback.jobs_state.get(progress_callback.job_id)
+                    if job and job.get("status") == "cancelling":
+                        job["status"] = "cancelled"
+                        raise JobCancelledError("Ablation study cancelled by user between arms.")
+
                 print(f"\n  [ARM: {arm}]")
                 logger.info(f"Running ARM: {arm} for video: {video_id}")
                 
@@ -60,12 +70,15 @@ class AblationRunner:
 
                 try:
                     # Run/Get Pipeline output
-                    output = self.pipeline.run(video_path, method=arm)
+                    if progress_callback:
+                        progress_callback.update(4, "Evaluation", i * 100 // len(arms), f"Running ablation arm: {arm}")
+                    output = self.pipeline.run(video_path, method=arm, progress_callback=progress_callback, original_filename=original_filename)
+                    out_paths_global[video_id][arm] = str(output.output_path)
                     
-                    # 2. Compute Metrics
+                    logger.info(f"[{arm}] Computing metrics (ROUGE, BERTScore, CLIPScore)...")
                     metrics = self._evaluate_output(video_id, arm, output)
                     
-                    # 3. LLM Judge
+                    logger.info(f"[{arm}] Running LLM Judge...")
                     judge_scores = self._run_judge(video_id, arm)
                     
                     # Combine all
@@ -84,6 +97,8 @@ class AblationRunner:
                         
                     all_results.append(result)
                     
+                except JobCancelledError:
+                    raise
                 except Exception as e:
                     logger.error(f"Failed evaluation for {video_id} - {arm}: {e}")
 
@@ -91,7 +106,7 @@ class AblationRunner:
         df = pd.DataFrame(all_results)
         if df.empty:
             logger.error("No successful evaluations gathered. Skipping summary generation.")
-            return run_dir
+            return run_dir, out_paths_global
 
         csv_path = run_dir / "ablation_results.csv"
         df.to_csv(csv_path, index=False)
@@ -100,7 +115,10 @@ class AblationRunner:
         self._generate_summary(df, run_dir)
         self._generate_plots(df, run_dir)
         
-        return run_dir
+        if progress_callback:
+            progress_callback.update(5, "Completed", 100, f"Ablation complete across {len(arms)} arms")
+            
+        return run_dir, out_paths_global
 
     def _evaluate_output(self, video_id: str, arm: str, output: Phase5Output) -> Dict[str, float]:
         """Compute automated metrics."""
@@ -117,10 +135,13 @@ class AblationRunner:
         full_summary = " ".join([s.text for s in summary_obj.sentences])
         
         # ROUGE & BERTScore
+        logger.info("Computing ROUGE scores...")
         rouge = compute_rouge(full_summary, full_transcript)
+        logger.info("Computing BERTScore (loading Roberta if needed)...")
         bertscore = compute_bertscore(full_summary, full_transcript)
         
         # CLIPScore
+        logger.info("Computing CLIPScore (loading CLIP if needed)...")
         # We need pairs of (keyframe_path, sentence_text)
         image_paths = []
         texts = []
@@ -190,8 +211,9 @@ class AblationRunner:
         
         # Estimate cost
         cost = self.judge.get_cost_estimate(transcript_text, summary_text, matched_captions_str)
-        logger.info(f"Estimated Judge Cost for {video_id}-{arm}: ${cost:.4f}")
+        logger.info(f"[{arm}] Estimated Judge Cost: ${cost:.4f}")
         
+        logger.info(f"[{arm}] Running LLM Judge evaluation...")
         return self.judge.evaluate_video(transcript_text, summary_text, matched_captions_str)
 
     def _generate_summary(self, df: pd.DataFrame, run_dir: Path):

@@ -31,7 +31,8 @@ class Phase5Assembler:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def run(self, original_video_path: Path, audio_manifest_path: Path, 
-            keyframes_manifest_path: Path, retrieval_output_path: Path, progress_callback: Any = None) -> Phase5Output:
+            keyframes_manifest_path: Path, retrieval_output_path: Path, 
+            progress_callback: Any = None, original_filename: str = None) -> Phase5Output:
         """
         Execute Phase 5: Assembly of video and audio segments.
         """
@@ -134,7 +135,10 @@ class Phase5Assembler:
             progress_callback.update(5, "Assembly", 90, "Muxing final video and audio")
             
         logger.info("Muxing final video and audio...")
-        final_output_path = self.output_dir / f"{video_id}_summary_{method}.mp4"
+        if original_filename:
+            final_output_path = self.output_dir / f"{video_id}_{original_filename}_summary_{method}.mp4"
+        else:
+            final_output_path = self.output_dir / f"{video_id}_summary_{method}.mp4"
         
         subtitle_path = None
         if self.config.get("subtitle", {}).get("enabled", False):

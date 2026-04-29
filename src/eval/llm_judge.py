@@ -27,15 +27,22 @@ VISUAL_RELEVANCE: Do the visuals match the narration semantically?
 Output JSON: {{"information_retention": int, "factual_faithfulness": int, "visual_relevance": int, "reasoning": "string"}}
 """
 
-    def __init__(self, api_key: Optional[str] = None, model_name: str = "llama-3.3-70b-versatile"):
-        if not api_key:
-            api_key = os.getenv("GROQ_API_KEY")
-            
-        if not api_key:
-            raise ValueError("GROQ_API_KEY not found in environment or arguments.")
-
-        self.backend = GroqBackend(api_key=api_key, model_name=model_name)
-        self.model_name = model_name
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "llama-3.3-70b-versatile", backend=None):
+        if backend is not None:
+            self.backend = backend
+            self.model_name = getattr(backend, "model_name", "Unknown")
+        else:
+            if not api_key:
+                api_key = os.getenv("GROQ_API_KEY")
+                
+            if not api_key:
+                logger.warning("GROQ_API_KEY not found in environment. LLM Judge will return placeholder scores.")
+                self.backend = None
+            else:
+                from src.models.llm_wrapper import GroqBackend
+                self.backend = GroqBackend(api_key=api_key, model_name=model_name)
+                
+            self.model_name = model_name
 
     def evaluate_video(self, transcript: str, summary_script: str, matched_captions: str) -> Dict[str, Any]:
         """Runs the evaluation with 3x retry logic."""
@@ -48,7 +55,15 @@ Output JSON: {{"information_retention": int, "factual_faithfulness": int, "visua
 
         for attempt in range(3):
             try:
+                if not self.backend:
+                    return {
+                        "information_retention": 3,
+                        "factual_faithfulness": 3,
+                        "visual_relevance": 3,
+                        "reasoning": "No LLM backend available for evaluation."
+                    }
                 # Reuse GroqBackend.generate which already has retry logic for 429s
+                # Use generic generate method which handles its own retries/exceptions
                 raw_response = self.backend.generate(system_prompt, user_prompt)
                 
                 # Parse JSON

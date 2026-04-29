@@ -43,6 +43,12 @@ class ProgressCallback:
         if not job:
             return
 
+        # Check for cancellation
+        if job.get("status") == "cancelling":
+            job["status"] = "cancelled"
+            from src.exceptions import JobCancelledError
+            raise JobCancelledError(f"Job {self.job_id} cancelled by user")
+
         job["current_phase"] = phase
         job["phase_name"] = name
         job["progress_pct"] = progress_pct
@@ -67,12 +73,15 @@ class ProgressCallback:
             "elapsed": job["elapsed_seconds"]
         }
         
-        # Since this is called from a thread, we need to run the broadcast in the event loop
-        # We'll use the main event loop if possible, or just fire and forget.
-        # FastAPI/Uvicorn run in an event loop.
+        # Broadcast via the main loop safely from any thread
         try:
+            # We assume the main loop is available via the manager's connections or globally
+            # In FastAPI/Uvicorn, we can try to get the existing running loop
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                loop.create_task(self.manager.broadcast_to_job(self.job_id, message))
+                # Since broadcast_to_job is async, use run_coroutine_threadsafe if called from worker thread
+                # but if we are already in the loop thread (rare for this callback), just create_task
+                asyncio.run_coroutine_threadsafe(self.manager.broadcast_to_job(self.job_id, message), loop)
         except Exception:
+            # Fallback for when loop is not available (e.g. initial job start)
             pass

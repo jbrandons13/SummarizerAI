@@ -11,44 +11,51 @@ from src.utils.text import clean_for_tts
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a professional video narrator who writes engaging voiceover scripts from transcripts.
+STYLE_GUIDELINES = {
+    "informative": "Be objective and clear. Focus on balanced summaries of the key points. Use a standard reporting tone.",
+    "hook-driven": "Be dramatic and punchy. Start sentences with surprising claims. Use short, high-energy words suitable for social media.",
+    "educational": "Be explanatory and logical. Use a teaching tone. Focus on the 'how' and 'why'. Include clear transitions between ideas."
+}
 
-Your job: read a transcript, extract the most valuable insights, and rewrite them as a compelling short narration that makes people want to watch.
+SYSTEM_PROMPT = """You are a master scriptwriter. Your task is to output a single, valid JSON object containing a summarized video script.
+STYLE: {style_description}
 
-WRITING RULES:
-1. Start with a HOOK — a bold claim or surprising fact. Never start with "In this video..."
-2. Sentences: Write 10-16 words per sentence. Use active voice.
-3. TTS optimization: Minimize commas. No dashes, semicolons, or ellipses. Use periods.
-4. Spell out numbers below 100 as words: "forty percent" not "40%".
-5. Metadata: source_timestamp_hint [start, end] must be accurate. Include 3-5 visual keywords.
-
-Target: {target_duration} seconds of spoken audio.
-
-{schema_json}"""
-
-COMBINE_PROMPT = """You are a script editor. Combine partial summaries into one cohesive narrative.
 RULES:
-1. Remove duplicates. 
-2. Write a strong hook and ending.
-3. Smooth transitions between chunks.
-4. Maintain all TTS optimization rules (no commas between clauses, spell out numbers).
+1. JSON ONLY: No markdown formatting, no conversational filler.
+2. HOOK: Start with a power statement. Never say "Starting video" or "In this clip".
+3. TONE: {style_description}
+4. SPELL NUMBERS: Say "seven minutes" not "7m".
+5. LENGTH: Target {target_duration} seconds.
 
-Target: {target_duration} seconds total.
-
+SCHEMA:
 {schema_json}"""
 
-FEW_SHOT_EXAMPLE = """EXAMPLE INPUT (partial transcript):
-[00:15] Okay so here's the thing. Most people think they need eight hours of sleep. [00:22] But our research at Stanford shows that sleep quality matters more than quantity.
+COMBINE_PROMPT = """You are a lead editor. Merge these partial summaries into one fluid final script.
+STYLE: {style_description}
 
-EXAMPLE OUTPUT:
+RULES:
+1. JSON ONLY: No introductory text.
+2. FLOW: Ensure sentences transition logically without repetition.
+3. LENGTH: Target total {target_duration} seconds.
+
+SCHEMA:
+{schema_json}"""
+
+FEW_SHOT_EXAMPLE = """[Example input/output for format reference only]
+Input: [00:15] Sleep quality is vital. [00:22] Most people need eight hours but quality wins.
+Output:
 {
+  "video_id": "demo",
+  "target_duration": 90,
+  "style": "informative",
+  "backend_used": "local",
   "sentences": [
     {
       "id": 0,
-      "text": "Most people believe eight hours of sleep is the magic number. New research says they are wrong.",
-      "estimated_duration_seconds": 4.5,
+      "text": "Quality rest beats duration every time. New research shows that how you sleep matters more than how long.",
+      "estimated_duration_seconds": 6.5,
       "source_timestamp_hint": [15.0, 22.0],
-      "keywords": ["speaker on stage", "sleep diagram", "audience"]
+      "keywords": ["diagram", "person sleeping", "science lab"]
     }
   ]
 }"""
@@ -65,6 +72,9 @@ class Phase2Summarizer:
         
         # Try finding markdown code block
         json_match = re.search(r'```json\s*(.*?)\s*```', response, re.DOTALL)
+        if not json_match:
+            json_match = re.search(r'```\s*(.*?)\s*```', response, re.DOTALL)
+            
         if json_match:
             content = json_match.group(1)
         else:
@@ -76,11 +86,22 @@ class Phase2Summarizer:
             else:
                 content = response
         
+        # Cleanup: sometimes LLMs add comments or trailing commas
+        # Remove trailing commas before closing braces/brackets
+        content = re.sub(r',\s*([}\]])', r'\1', content)
+        
         try:
             return json.loads(content)
         except json.JSONDecodeError as e:
-            logger.error(f"JSON Parsing Error. Raw content attempted: {content[:200]}...")
-            raise e
+            logger.error(f"JSON Parsing Error at {e.lineno}:{e.colno}. Attempting secondary cleanup...")
+            try:
+                # Remove common non-json prefixes/suffixes that might have survived
+                content = re.sub(r'^[^{]*', '', content)
+                content = re.sub(r'[^}]*$', '', content)
+                return json.loads(content)
+            except:
+                logger.error(f"Failed to parse JSON. Raw content preview: {content[:300]}...")
+                raise e
 
     def _chunk_transcript(self, transcript: TranscriptSchema) -> List[str]:
         """Split transcript into compact text chunks if too large."""
@@ -121,7 +142,12 @@ class Phase2Summarizer:
         
         chunks = self._chunk_transcript(transcript)
         schema_json = SummaryScript.model_json_schema()
-        sys_prompt = SYSTEM_PROMPT.format(target_duration=target_duration, schema_json=json.dumps(schema_json))
+        style_desc = STYLE_GUIDELINES.get(style, STYLE_GUIDELINES["informative"])
+        sys_prompt = SYSTEM_PROMPT.format(
+            target_duration=target_duration, 
+            schema_json=json.dumps(schema_json),
+            style_description=style_desc
+        )
 
         if len(chunks) == 1:
             # Single pass
@@ -156,7 +182,11 @@ class Phase2Summarizer:
                 progress_callback.update(2, "Summarization", 80, "Merging chunk summaries")
                 
             final_user_prompt = f"{FEW_SHOT_EXAMPLE}\n\nCombine these partial summaries:\n" + json.dumps(chunk_summaries, indent=1)
-            final_sys_prompt = COMBINE_PROMPT.format(target_duration=target_duration, schema_json=json.dumps(schema_json))
+            final_sys_prompt = COMBINE_PROMPT.format(
+                target_duration=target_duration, 
+                schema_json=json.dumps(schema_json),
+                style_description=style_desc
+            )
             summary_data = self._generate_with_retry(final_sys_prompt, final_user_prompt)
 
         # Ensure metadata is correct

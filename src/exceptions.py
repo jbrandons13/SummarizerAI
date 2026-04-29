@@ -25,3 +25,7 @@ class NoAudioError(VideoSummarizerError):
 class TTSError(VideoSummarizerError):
     """Exception raised for text-to-speech errors."""
     pass
+
+class JobCancelledError(VideoSummarizerError):
+    """Exception raised when a job is cancelled by the user."""
+    pass

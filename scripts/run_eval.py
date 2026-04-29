@@ -83,7 +83,7 @@ def main():
     # 4. Run Evaluation
     try:
         runner = AblationRunner(config)
-        results_path = runner.run(video_paths, arms)
+        results_path, _ = runner.run(video_paths, arms)
         
         logger.info("==========================================")
         logger.info("EVALUATION COMPLETE")

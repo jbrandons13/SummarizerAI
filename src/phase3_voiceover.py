@@ -10,7 +10,7 @@ from src.schemas import SummaryScript, AudioManifest, AudioSentence
 from src.models.tts_wrapper import TTSBackend, KokoroBackend, F5TTSBackend
 from src.utils.io import load_json_as_model, save_model_as_json
 from src.utils.vram import VRAMManager
-from src.exceptions import TTSError
+from src.exceptions import TTSError, JobCancelledError
 
 def clean_for_tts(text):
     import re
@@ -132,6 +132,8 @@ class Phase3Voiceover:
                     ))
                     total_duration += duration
                     
+                except JobCancelledError:
+                    raise
                 except Exception as e:
                     logger.error(f"Error generating TTS for sentence {i}: {e}")
                 

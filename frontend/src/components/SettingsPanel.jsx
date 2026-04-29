@@ -10,27 +10,6 @@ export default function SettingsPanel({ settings, onChange }) {
       <div className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-3">Pipeline Settings</div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Target Duration */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <label className="text-xs font-medium text-gray-500">Target duration</label>
-            <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{settings.target_duration}s</span>
-          </div>
-          <input 
-            type="range" 
-            min="30" 
-            max="300" 
-            step="10"
-            value={settings.target_duration}
-            onChange={(e) => handleChange('target_duration', parseInt(e.target.value))}
-            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-          />
-          <div className="flex justify-between text-[10px] text-gray-400">
-            <span>30s</span>
-            <span>300s</span>
-          </div>
-        </div>
-
         {/* Retrieval Method */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-gray-500">Retrieval method</label>

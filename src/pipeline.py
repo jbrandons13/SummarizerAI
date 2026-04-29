@@ -13,7 +13,7 @@ from src.utils.vram import VRAMManager
 from src.models.llm_wrapper import GroqBackend, LocalBackend
 from src.models.tts_wrapper import KokoroBackend, F5TTSBackend
 from src.schemas import Phase5Output
-from src.exceptions import VideoSummarizerError
+from src.exceptions import VideoSummarizerError, JobCancelledError
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class VideoSummarizerPipeline:
         # TTS Backend selection is now handled within Phase3Voiceover
         pass
 
-    def run(self, video_path: Path, method: str = "siglip_direct", progress_callback: Any = None) -> Phase5Output:
+    def run(self, video_path: Path, method: str = "siglip_direct", progress_callback: Any = None, original_filename: str = None) -> Phase5Output:
         """
         Run the full pipeline from raw video to final summary.
         """
@@ -69,6 +69,7 @@ class VideoSummarizerPipeline:
             else:
                 p1 = TranscriptionPhase(self.vram_manager, self.config.get("models", {}).get("whisper", {}))
                 transcript_path = p1.run(video_path, progress_callback=progress_callback)
+            self.vram_manager.log_peak_usage("Phase 1: Transcription")
             
             # Phase 2: Summarization
             llm_name = getattr(self.llm_backend, "model_name", "Unknown")
@@ -84,6 +85,7 @@ class VideoSummarizerPipeline:
             else:
                 p2 = Phase2Summarizer(self.llm_backend, self.config.get("summarization", {}))
                 summary_path = p2.run(transcript_path, target_duration=self.config.get("summarization", {}).get("max_output_duration_seconds", 60), progress_callback=progress_callback)
+            self.vram_manager.log_peak_usage("Phase 2: Summarization")
             
             # Phase 3: Voiceover
             tts_backend_name = self.config.get("tts", {}).get("backend", "Unknown")
@@ -99,6 +101,7 @@ class VideoSummarizerPipeline:
             else:
                 p3 = Phase3Voiceover(self.config, self.vram_manager)
                 audio_manifest_path = p3.run(summary_path, progress_callback=progress_callback)
+            self.vram_manager.log_peak_usage("Phase 3: Voiceover")
             
             # Phase 4: Retrieval
             retrieval_models = {
@@ -123,20 +126,23 @@ class VideoSummarizerPipeline:
                 summary = load_json_as_model(summary_path, SummaryScript)
                 p4 = Phase4Retrieval(self.config, self.vram_manager)
                 p4.run(video_path, summary, method=method, progress_callback=progress_callback)
+            self.vram_manager.log_peak_usage(f"Phase 4: Retrieval ({method})")
             
             # Phase 5: Assembly
             if progress_callback:
                 progress_callback.update(5, "Assembly", 0, "Cutting and muxing final video")
             
             logger.info("--- Phase 5: Assembly ---")
-            p5 = Phase5Assembler(self.config)
+            p5 = Phase5Assembler(self.config, self.vram_manager)
             output = p5.run(
                 video_path, 
                 audio_manifest_path, 
                 keyframes_manifest_path, 
                 retrieval_output_path,
-                progress_callback=progress_callback
+                progress_callback=progress_callback,
+                original_filename=original_filename
             )
+            self.vram_manager.log_peak_usage("Phase 5: Assembly")
             
             duration = time.time() - start_time
             logger.info(f"Pipeline complete in {duration:.2f} seconds.")
@@ -146,6 +152,9 @@ class VideoSummarizerPipeline:
                 
             return output
             
+        except JobCancelledError:
+            # Re-raise cancellation directly to be caught by tasks.py correctly
+            raise
         except Exception as e:
             logger.error(f"Pipeline failed: {e}")
             raise VideoSummarizerError(f"Pipeline execution failed: {e}")
