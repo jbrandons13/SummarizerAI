@@ -148,24 +148,28 @@ async def get_result(job_id: str):
         }
         # Try to find output videos in data/output
         output_dir = Path("data/output")
-        metadata_files = list(output_dir.glob(f"{job_id}_summary_*_metadata.json"))
+        # Match both {job_id}_summary_*.json and {job_id}_{orig}_summary_*.json
+        metadata_files = list(output_dir.glob(f"{job_id}*_summary_*_metadata.json"))
+        
         for metadata_file in metadata_files:
-            # Extract method from filename {job_id}_summary_{method}_metadata.json
-            filename = metadata_file.name
-            method = filename.replace(f"{job_id}_summary_", "").replace("_metadata.json", "")
-            video_path = output_dir / f"{job_id}_summary_{method}.mp4"
-            if video_path.exists():
-                job["outputs"][method] = str(video_path)
+            try:
+                # Extract method: it's between '_summary_' and '_metadata.json'
+                filename = metadata_file.name
+                if "_summary_" in filename:
+                    method = filename.split("_summary_")[1].replace("_metadata.json", "")
+                    
+                    # Find corresponding video (might have original_filename in it)
+                    video_pattern = f"{job_id}*_summary_{method}.mp4"
+                    video_matches = list(output_dir.glob(video_pattern))
+                    if video_matches:
+                        job["outputs"][method] = str(video_matches[0])
+            except Exception as e:
+                logger.warning(f"Failed to recover arm from {metadata_file.name}: {e}")
         
         if len(job["outputs"]) > 1:
             job["method"] = "all"
         elif len(job["outputs"]) == 1:
             job["method"] = list(job["outputs"].keys())[0]
-        
-        if not job["outputs"]:
-            # Maybe it's an earlier version or naming convention?
-            # Let's check for summary_*.mp4 in data/output (if job_id is the folder)
-            pass
     
     # Load data
     video_id = job_id

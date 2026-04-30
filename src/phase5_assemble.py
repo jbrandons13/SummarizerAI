@@ -162,7 +162,10 @@ class Phase5Assembler:
             peak_vram_gb=peak_vram
         )
         
-        metadata_path = self.output_dir / f"{video_id}_summary_{method}_metadata.json"
+        if original_filename:
+            metadata_path = self.output_dir / f"{video_id}_{original_filename}_summary_{method}_metadata.json"
+        else:
+            metadata_path = self.output_dir / f"{video_id}_summary_{method}_metadata.json"
         save_model_as_json(output_metadata, metadata_path)
         
         # 7. Cleanup
