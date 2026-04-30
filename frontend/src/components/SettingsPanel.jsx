@@ -62,6 +62,7 @@ export default function SettingsPanel({ settings, onChange }) {
             className="w-full text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="kokoro">Kokoro 1.0</option>
+            <option value="dia">Dia 1.6B (Quality)</option>
             <option value="f5-tts">F5-TTS</option>
           </select>
         </div>

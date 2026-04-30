@@ -56,6 +56,82 @@ class TTSBackend(ABC):
         silence = np.zeros(padding_samples)
         return np.concatenate([audio, silence])
 
+class DiaBackend(TTSBackend):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        super().__init__()
+        self.config = config or {}
+        self.model_name = self.config.get("tts", {}).get("dia_model", "nari-labs/Dia-1.6B")
+        self.target_sr = self.config.get("tts", {}).get("sample_rate", 24000)
+        self.model = None
+
+    def _load_model(self):
+        try:
+            from dia.model import Dia
+        except ImportError:
+            raise ImportError("dia-tts (nari-tts) not installed. Run 'pip install -e libs/dia'")
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info(f"Loading Dia 1.6B model ({self.model_name}) on {device}...")
+        
+        # Note: Dia-1.6B is ~1.6B parameters, ~10GB VRAM
+        # from_pretrained handles device placement
+        self.model = Dia.from_pretrained(self.model_name, device=torch.device(device))
+        
+        logger.info("Dia model loaded successfully.")
+
+    def generate(self, text: str, output_path: Path) -> float:
+        """Generate high-fidelity TTS using Dia 1.6B."""
+        if self.model is None:
+            self._load_model()
+        
+        # Dia is a dialogue model. Prefixing with [S1] ensures it stays in Speaker 1 mode.
+        # This prevents the "changing voices" issue.
+        styled_text = f"[S1] {text}"
+        
+        # Use a consistent audio prompt for speaker stability if available
+        # You can place a 'speaker_ref.wav' in configs/ to use a custom voice.
+        audio_prompt = None
+        ref_path = Path("configs/dia_speaker_ref.wav")
+        if ref_path.exists():
+            audio_prompt = str(ref_path)
+        elif Path("libs/dia/example_prompt.mp3").exists():
+            # Use the library's example prompt as a stable baseline
+            audio_prompt = "libs/dia/example_prompt.mp3"
+
+        logger.debug(f"Dia generating (Speaker 1 mode): {text[:50]}...")
+        
+        # Use stable parameters to prevent quality degradation and voice drift
+        audio = self.model.generate(
+            styled_text,
+            audio_prompt=audio_prompt,
+            temperature=1.0,  # Lower for stability
+            top_p=0.95,
+            cfg_scale=3.0,
+            use_torch_compile=False # Already handled or skipped for speed
+        )
+        
+        # Audio is usually a numpy array. Ensure it's float32.
+        audio = np.array(audio).astype(np.float32)
+        
+        # Normalize and resample
+        audio = self.resample_audio(audio, 44100, self.target_sr)
+        audio = self.normalize_audio(audio, self.target_sr)
+        audio = self.add_padding(audio, self.target_sr)
+        
+        import soundfile as sf
+        sf.write(output_path, audio, self.target_sr)
+        return len(audio) / self.target_sr
+
+    def unload(self):
+        if self.model is not None:
+            logger.info("Unloading Dia model from VRAM...")
+            del self.model
+            self.model = None
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            import gc
+            gc.collect()
+
 class KokoroBackend(TTSBackend):
     def __init__(self, config: Optional[Dict[str, Any]] = None, model_path: Optional[str] = None, voices_path: Optional[str] = None):
         super().__init__()

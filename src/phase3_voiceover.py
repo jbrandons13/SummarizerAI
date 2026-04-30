@@ -7,7 +7,7 @@ import numpy as np
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeElapsedColumn
 
 from src.schemas import SummaryScript, AudioManifest, AudioSentence
-from src.models.tts_wrapper import TTSBackend, KokoroBackend, F5TTSBackend
+from src.models.tts_wrapper import TTSBackend, KokoroBackend, F5TTSBackend, DiaBackend
 from src.utils.io import load_json_as_model, save_model_as_json
 from src.utils.vram import VRAMManager
 from src.exceptions import TTSError, JobCancelledError
@@ -49,6 +49,8 @@ class Phase3Voiceover:
         backend_name = config.get("tts", {}).get("backend", "kokoro")
         if backend_name == "kokoro":
             return KokoroBackend(config)
+        elif backend_name == "dia":
+            return DiaBackend(config)
         elif backend_name == "f5-tts":
             return F5TTSBackend()
         else:

@@ -50,9 +50,10 @@ llm:
   retry_count: 3
 
 tts:
-  backend: "kokoro"
+  backend: "kokoro"           # options: "kokoro", "dia"
   kokoro_voice: "af_heart"    # most expressive voice
   kokoro_speed: 1.05          # slightly faster = more energetic
+  dia_model: "nari-labs/Dia-1.6B-0626"
   silence_padding_ms: 150     # was 200, tighter pacing
   loudness_lufs: -18
   sample_rate: 24000
