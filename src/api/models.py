@@ -4,7 +4,7 @@ from uuid import UUID
 from datetime import datetime
 
 class SummarizeRequest(BaseModel):
-    retrieval_method: str = "siglip_direct" # "random" | "caption_cosine" | "siglip_direct" | "all"
+    retrieval_method: str = "siglip_direct" # "random" | "caption_cosine" | "caption_temporal" | "siglip_direct" | "siglip_temporal" | "all"
     style: str = "informative" # "informative" | "hook-driven" | "educational"
     subtitles: str = "none" # "burn_in" | "srt_only" | "none"
     tts_backend: str = "kokoro" # "kokoro" | "f5tts"

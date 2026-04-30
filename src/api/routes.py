@@ -34,7 +34,8 @@ async def post_summarize(
     style: str = Form("informative"),
     subtitles: str = Form("none"),
     tts_backend: str = Form("kokoro"),
-    llm_backend: str = Form("groq")
+    llm_backend: str = Form("groq"),
+    force: bool = Form(False)
 ):
     # 1. Validate
     if not file.filename.endswith((".mp4", ".mov", ".avi", ".mkv")):
@@ -94,7 +95,8 @@ async def post_summarize(
         llm_backend,
         style,
         90, # default target_duration
-        original_stem
+        original_stem,
+        force
     )
     
     return {"job_id": job_id}
@@ -148,8 +150,8 @@ async def get_result(job_id: str):
         }
         # Try to find output videos in data/output
         output_dir = Path("data/output")
-        # Match both {job_id}_summary_*.json and {job_id}_{orig}_summary_*.json
-        metadata_files = list(output_dir.glob(f"{job_id}*_summary_*_metadata.json"))
+        # Match both {job_id}_summary_*.json and {job_id}/{orig}_summary_*.json (recursive)
+        metadata_files = list(output_dir.glob(f"**/{job_id}*_summary_*_metadata.json"))
         
         for metadata_file in metadata_files:
             try:
@@ -275,8 +277,17 @@ async def get_video(job_id: str, method: str):
             video_file = matches[0]
 
     if not video_file.exists():
-        # Try alternate naming (subfolder)
-        video_file = output_dir / job_id / f"summary_{method}.mp4"
+        # Try alternate naming (subfolder search)
+        job_dir = output_dir / job_id
+        if job_dir.exists():
+            # Try simple name first
+            video_file = job_dir / f"summary_{method}.mp4"
+            if not video_file.exists():
+                # Search for original_filename pattern inside the folder
+                pattern = f"*summary_{method}.mp4"
+                matches = list(job_dir.glob(pattern))
+                if matches:
+                    video_file = matches[0]
 
     if not video_file.exists():
         raise HTTPException(status_code=404, detail="Video file not found")
@@ -378,7 +389,8 @@ async def get_eval_dashboard():
     # 3. Gather output jobs from data/output (might include non-evaluated ones)
     output_dir = Path("data/output")
     if not output_dir.exists(): output_dir.mkdir(parents=True, exist_ok=True)
-    job_metadata_files = sorted(list(output_dir.glob("*_metadata.json")), key=os.path.getmtime, reverse=True)
+    # Search recursively for metadata files
+    job_metadata_files = sorted(list(output_dir.glob("**/*_metadata.json")), key=os.path.getmtime, reverse=True)
     
     # Add from CSVs (already loaded in df)
     if not df.empty and "video_id" in df.columns:
@@ -434,16 +446,23 @@ async def delete_job(job_id: str):
         
     # 3. Remove output files
     output_dir = Path("data/output")
-    # Pattern must match both old '{job_id}_summary_*' and new '{job_id}_{original_name}_summary_*'
+    
+    # Remove job-specific output folder if exists
+    job_output_dir = output_dir / job_id
+    if job_output_dir.exists():
+        try:
+            shutil.rmtree(job_output_dir)
+        except Exception as e:
+            logger.warning(f"Failed to delete job output dir {job_output_dir}: {e}")
+
+    # Pattern must match old '{job_id}_summary_*' in top level
     pattern = f"{job_id}*_summary_*"
     for matched_file in output_dir.glob(pattern):
         try:
             if matched_file.is_file():
                 matched_file.unlink()
-            elif matched_file.is_dir():
-                shutil.rmtree(matched_file)
         except Exception as e:
-            logger.warning(f"Failed to delete {matched_file}: {e}")
+            logger.warning(f"Failed to delete legacy file {matched_file}: {e}")
 
     # 4. Remove from ablation results (History)
     results_dir = Path("results")

@@ -19,9 +19,11 @@ export default function SettingsPanel({ settings, onChange }) {
             className="w-full text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
             <option value="random">Random baseline</option>
-            <option value="caption_cosine">Caption cosine</option>
-            <option value="siglip_direct">SigLIP direct</option>
-            <option value="all">Compare all 3</option>
+            <option value="caption_cosine">Caption cosine (Semantic)</option>
+            <option value="caption_temporal">Caption + Temporal</option>
+            <option value="siglip_direct">SigLIP direct (Semantic)</option>
+            <option value="siglip_temporal">SigLIP + Temporal</option>
+            <option value="all">Compare all 5 arms</option>
           </select>
         </div>
 

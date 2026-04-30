@@ -26,6 +26,10 @@ RULES:
 3. TONE: {style_description}
 4. SPELL NUMBERS: Say "seven minutes" not "7m".
 5. LENGTH: Target {target_duration} seconds.
+6. CONTENT ONLY: Summarize the MAIN TOPIC and FACTUAL CLAIMS of the video. Do NOT summarize vocabulary definitions, word explanations, pronunciation guides, or language teaching segments. Focus on WHAT the video is about, not HOW it teaches.
+7. NO REPETITION: Each sentence must cover a DIFFERENT aspect or subtopic. Never rephrase the same point in multiple sentences.
+8. VISUAL KEYWORDS: The "keywords" field must contain VISUAL descriptions of what might appear on screen during that part of the video. Think: what would a viewer SEE? Use concrete nouns (e.g., "bar chart", "person running", "close-up of chip") not abstract concepts (e.g., "performance", "health", "innovation").
+9. TIMESTAMP ACCURACY: The "source_timestamp_hint" must match the approximate time range in the transcript where the information for that sentence originally appears. Use the timestamps provided in the transcript. This is critical for visual matching.
 
 SCHEMA:
 {schema_json}"""
@@ -42,7 +46,7 @@ SCHEMA:
 {schema_json}"""
 
 FEW_SHOT_EXAMPLE = """[Example input/output for format reference only]
-Input: [00:15] Sleep quality is vital. [00:22] Most people need eight hours but quality wins.
+Input: [00:15] Sleep quality is vital for brain function. [00:22] Most people need eight hours but quality wins. [01:05] A new study from Harvard shows napping can reduce cortisol levels. [01:30] The word 'rejuvenate' means to restore energy. [02:10] Brain scans revealed that nappers had larger hippocampal volume.
 Output:
 {
   "video_id": "demo",
@@ -52,13 +56,28 @@ Output:
   "sentences": [
     {
       "id": 0,
-      "text": "Quality rest beats duration every time. New research shows that how you sleep matters more than how long.",
+      "text": "Quality rest beats duration every time, and new research shows that how you sleep matters more than how long.",
       "estimated_duration_seconds": 6.5,
       "source_timestamp_hint": [15.0, 22.0],
-      "keywords": ["diagram", "person sleeping", "science lab"]
+      "keywords": ["person sleeping in bed", "alarm clock", "sleep quality infographic"]
+    },
+    {
+      "id": 1,
+      "text": "A Harvard study found that short naps can significantly lower stress hormones in the body.",
+      "estimated_duration_seconds": 6.0,
+      "source_timestamp_hint": [65.0, 90.0],
+      "keywords": ["Harvard university logo", "scientist in lab", "cortisol chart"]
+    },
+    {
+      "id": 2,
+      "text": "Brain scans of regular nappers showed a noticeably larger hippocampus, the region linked to memory.",
+      "estimated_duration_seconds": 6.5,
+      "source_timestamp_hint": [130.0, 150.0],
+      "keywords": ["MRI brain scan", "hippocampus diagram", "medical imaging screen"]
     }
   ]
-}"""
+}
+Note: The input segment about the word 'rejuvenate' was intentionally excluded because it is a vocabulary explanation, not factual content about the topic."""
 
 class Phase2Summarizer:
     def __init__(self, backend: LLMBackend, config: Dict[str, Any]):

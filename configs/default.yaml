@@ -23,6 +23,11 @@ models:
   siglip:
     model_name: "google/siglip2-so400m-patch16-naflex"
 
+retrieval:
+  use_temporal_guidance: true
+  temporal_weight: 0.3
+  temporal_sigma: 30.0
+
 summarization:
   max_output_duration_seconds: 90
   min_segment_duration_seconds: 3.0
@@ -57,3 +62,7 @@ tts:
   silence_padding_ms: 150     # was 200, tighter pacing
   loudness_lufs: -18
   sample_rate: 24000
+
+assembly:
+  clip_duration_mode: "match_audio"  # options: "full_scene", "match_audio"
+  clip_buffer_seconds: 0.5

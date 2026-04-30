@@ -5,6 +5,7 @@ import random
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from abc import ABC, abstractmethod
+import numpy as np
 
 import torch
 import cv2
@@ -20,6 +21,43 @@ from src.utils.ffmpeg_ops import extract_frame_at
 from src.exceptions import FFmpegError
 
 logger = logging.getLogger(__name__)
+
+def min_max_normalize(scores):
+    """Normalize array to [0, 1] range."""
+    if isinstance(scores, (list, tuple)):
+        scores = np.array(scores)
+    elif torch.is_tensor(scores):
+        scores = scores.cpu().numpy()
+        
+    s_min, s_max = scores.min(), scores.max()
+    if s_max - s_min < 1e-6:
+        return np.ones_like(scores) * 0.5
+    return (scores - s_min) / (s_max - s_min)
+
+def compute_temporal_scores(sentence_timestamp_hint, keyframe_timestamps, sigma=30.0):
+    """
+    Compute temporal proximity scores between a sentence's source timestamp
+    and all keyframe timestamps.
+    
+    Args:
+        sentence_timestamp_hint: [start, end] from source_timestamp_hint
+        keyframe_timestamps: list of floats, midpoint timestamp of each keyframe's scene
+        sigma: controls how quickly score decays with distance (in seconds).
+    
+    Returns:
+        numpy array of scores in [0, 1], one per keyframe
+    """
+    import math
+    if sentence_timestamp_hint is None or len(sentence_timestamp_hint) < 2:
+        # No timestamp info available, return uniform scores (no temporal bias)
+        return np.ones(len(keyframe_timestamps)) / max(len(keyframe_timestamps), 1)
+    
+    mid = (sentence_timestamp_hint[0] + sentence_timestamp_hint[1]) / 2.0
+    scores = np.array([
+        math.exp(-((kf_ts - mid) ** 2) / (2 * sigma ** 2))
+        for kf_ts in keyframe_timestamps
+    ])
+    return scores
 
 class KeyframeExtractor:
     """Detects scenes in a video and extracts representative keyframes."""
@@ -287,34 +325,57 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
                 progress_callback.update(4, "Visual Retrieval", pct, f"SigLIP processing scene {scene_idx+1}/{len(image_paths)}")
 
             for sent_idx, score in enumerate(similarities):
-                # Apply temporal preference bonus
-                final_score = score
-                if use_timestamp_hint:
-                    hint = summary.sentences[sent_idx].source_timestamp_hint
-                    if hint and len(hint) >= 2:
-                        start_hint, end_hint = hint
-                        scene = manifest.scenes[scene_idx]
-                        # If scene midpoint is within hint window (with 2s buffer)
-                        if (start_hint - 2.0) <= scene.keyframe_timestamp <= (end_hint + 2.0):
-                            final_score += 0.1
-                            
-                all_pairs.append((sent_idx, scene_idx, final_score))
+                all_pairs.append((sent_idx, scene_idx, score))
+
+        # 3. Apply Temporal Guidance
+        all_similarities = np.zeros((num_sentences, num_scenes))
+        for sent_idx, scene_idx, score in all_pairs:
+            all_similarities[sent_idx, scene_idx] = score
+
+        # Config-driven temporal settings
+        ret_cfg = self.config.get("retrieval", {})
+        use_temporal = ret_cfg.get("use_temporal_guidance", True) and use_timestamp_hint
+        beta = ret_cfg.get("temporal_weight", 0.3)
+        sigma = ret_cfg.get("temporal_sigma", 30.0)
+
+        kf_timestamps = [s.keyframe_timestamp for s in manifest.scenes]
+        final_pairs = []
+
+        for sent_idx in range(num_sentences):
+            semantic_scores = all_similarities[sent_idx]
+            
+            if use_temporal:
+                temporal_scores = compute_temporal_scores(
+                    summary.sentences[sent_idx].source_timestamp_hint,
+                    kf_timestamps,
+                    sigma=sigma
+                )
                 
+                semantic_norm = min_max_normalize(semantic_scores)
+                temporal_norm = min_max_normalize(temporal_scores)
+                
+                final_scores = (1 - beta) * semantic_norm + beta * temporal_norm
+            else:
+                final_scores = semantic_scores
+
+            for scene_idx, score in enumerate(final_scores):
+                final_pairs.append((sent_idx, scene_idx, float(score)))
+
         # Unload model
         self.vram_manager.load_model("None (Cleanup)", lambda: None)
         
-        matches = self.greedy_match(all_pairs, num_sentences, num_scenes, allow_reuse=(num_scenes < num_sentences))
+        matches = self.greedy_match(final_pairs, num_sentences, num_scenes, allow_reuse=(num_scenes < num_sentences))
         
         return RetrievalOutput(
             video_id=summary.video_id,
-            retrieval_method="siglip_direct",
+            retrieval_method="siglip_temporal" if use_timestamp_hint else "siglip_direct",
             matches=matches
         )
 
 class CaptionCosineRetrieval(RetrievalBackend):
     """Arm B: Caption + Cosine similarity (Qwen2.5-VL + SentenceTransformer)."""
     
-    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest, language: str = "en", progress_callback: Any = None) -> RetrievalOutput:
+    def retrieve(self, summary: SummaryScript, manifest: KeyframesManifest, language: str = "en", use_timestamp_hint: bool = True, progress_callback: Any = None) -> RetrievalOutput:
         from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
         from qwen_vl_utils import process_vision_info
         from sentence_transformers import SentenceTransformer, util
@@ -419,23 +480,38 @@ class CaptionCosineRetrieval(RetrievalBackend):
         num_sentences = len(summary.sentences)
         num_scenes = len(manifest.scenes)
         
+        # Config-driven temporal settings
+        ret_cfg = self.config.get("retrieval", {})
+        use_temporal = ret_cfg.get("use_temporal_guidance", True) and use_timestamp_hint
+        beta = ret_cfg.get("temporal_weight", 0.3)
+        sigma = ret_cfg.get("temporal_sigma", 30.0)
+        kf_timestamps = [s.keyframe_timestamp for s in manifest.scenes]
+
         for i in range(num_sentences):
-            for j in range(num_scenes):
-                score = float(cosine_scores[i][j])
-                # Temporal bonus
-                hint = summary.sentences[i].source_timestamp_hint
-                if hint and len(hint) >= 2:
-                    start_hint, end_hint = hint
-                    scene = manifest.scenes[j]
-                    if (start_hint - 2.0) <= scene.keyframe_timestamp <= (end_hint + 2.0):
-                        score += 0.1
-                all_pairs.append((i, j, score))
+            semantic_scores = cosine_scores[i]
+            
+            if use_temporal:
+                temporal_scores = compute_temporal_scores(
+                    summary.sentences[i].source_timestamp_hint,
+                    kf_timestamps,
+                    sigma=sigma
+                )
+                
+                semantic_norm = min_max_normalize(semantic_scores)
+                temporal_norm = min_max_normalize(temporal_scores)
+                
+                final_scores = (1 - beta) * semantic_norm + beta * temporal_norm
+            else:
+                final_scores = semantic_scores
+
+            for j, score in enumerate(final_scores):
+                all_pairs.append((i, j, float(score)))
                 
         matches = self.greedy_match(all_pairs, num_sentences, num_scenes, allow_reuse=(num_scenes < num_sentences))
         
         return RetrievalOutput(
             video_id=summary.video_id,
-            retrieval_method="caption_cosine",
+            retrieval_method="caption_temporal" if use_timestamp_hint else "caption_cosine",
             matches=matches
         )
 
@@ -468,7 +544,7 @@ class Phase4Retrieval:
         results = {}
         
         # Based on method, run specific arm or all
-        arms_to_run = [method] if method != "all" else ["random", "siglip_direct", "caption_cosine"]
+        arms_to_run = [method] if method != "all" else ["random", "caption_cosine", "caption_temporal", "siglip_direct", "siglip_temporal"]
         
         total_arms = len(arms_to_run)
         for i, arm_name in enumerate(arms_to_run):
@@ -480,10 +556,16 @@ class Phase4Retrieval:
                 results["random"] = arm.retrieve(summary, manifest)
             elif arm_name == "siglip_direct":
                 arm = SigLIP2DirectRetrieval(self.config, self.vram_manager)
-                results["siglip_direct"] = arm.retrieve(summary, manifest)
+                results["siglip_direct"] = arm.retrieve(summary, manifest, use_timestamp_hint=False)
+            elif arm_name == "siglip_temporal":
+                arm = SigLIP2DirectRetrieval(self.config, self.vram_manager)
+                results["siglip_temporal"] = arm.retrieve(summary, manifest, use_timestamp_hint=True)
             elif arm_name == "caption_cosine":
                 arm = CaptionCosineRetrieval(self.config, self.vram_manager)
-                results["caption_cosine"] = arm.retrieve(summary, manifest, language=language)
+                results["caption_cosine"] = arm.retrieve(summary, manifest, language=language, use_timestamp_hint=False)
+            elif arm_name == "caption_temporal":
+                arm = CaptionCosineRetrieval(self.config, self.vram_manager)
+                results["caption_temporal"] = arm.retrieve(summary, manifest, language=language, use_timestamp_hint=True)
 
         # Save results
         for m, output in results.items():

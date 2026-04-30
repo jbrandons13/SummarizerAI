@@ -43,7 +43,7 @@ class VideoSummarizerPipeline:
         # TTS Backend selection is now handled within Phase3Voiceover
         pass
 
-    def run(self, video_path: Path, method: str = "siglip_direct", progress_callback: Any = None, original_filename: str = None) -> Phase5Output:
+    def run(self, video_path: Path, method: str = "siglip_direct", force: bool = False, progress_callback: Any = None, original_filename: str = None) -> Phase5Output:
         """
         Run the full pipeline from raw video to final summary.
         """
@@ -52,6 +52,14 @@ class VideoSummarizerPipeline:
             raise FileNotFoundError(f"Video not found: {video_path}")
             
         video_id = video_path.stem
+        
+        # Handle force restart by clearing intermediate data
+        intermediate_dir = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id
+        if force and intermediate_dir.exists():
+            import shutil
+            logger.info(f"Force flag detected. Clearing existing intermediate data for {video_id}...")
+            shutil.rmtree(intermediate_dir)
+            
         start_time = time.time()
         
         try:
@@ -106,8 +114,10 @@ class VideoSummarizerPipeline:
             # Phase 4: Retrieval
             retrieval_models = {
                 "random": "None (Deterministic Random)",
-                "siglip_direct": "SigLIP 2 (google/siglip2-so400m-patch16-naflex)",
-                "caption_cosine": "Qwen2.5-VL-3B + Sentence-MiniLM"
+                "siglip_direct": "SigLIP 2 (Semantic Only)",
+                "siglip_temporal": "SigLIP 2 + Temporal Guidance",
+                "caption_cosine": "Qwen2.5-VL + Cosine (Semantic Only)",
+                "caption_temporal": "Qwen2.5-VL + Cosine + Temporal Guidance"
             }
             active_retrieval = retrieval_models.get(method, method)
             logger.info(f"--- Phase 4: Retrieval (Model: {active_retrieval}) ---")

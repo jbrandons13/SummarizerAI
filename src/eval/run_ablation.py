@@ -26,7 +26,7 @@ class AblationRunner:
         self.results_dir = Path(config.get("paths", {}).get("results_dir", "results"))
         self.intermediate_dir = Path(config.get("paths", {}).get("intermediate_dir", "data/intermediate"))
 
-    def run(self, video_paths: List[Path], arms: List[str], progress_callback: Any = None, original_filename: str = None) -> tuple[Path, Dict[str, Dict[str, str]]]:
+    def run(self, video_paths: List[Path], arms: List[str], force: bool = False, progress_callback: Any = None, original_filename: str = None) -> tuple[Path, Dict[str, Dict[str, str]]]:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         run_dir = self.results_dir / timestamp
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -58,7 +58,7 @@ class AblationRunner:
                 # Check for existing eval result
                 video_dir = self.intermediate_dir / video_id
                 eval_result_path = video_dir / f"eval_results_{arm}.json"
-                if eval_result_path.exists():
+                if not force and eval_result_path.exists():
                     logger.info(f"Loading existing evaluation results for {video_id} - {arm}")
                     try:
                         with open(eval_result_path, "r") as f:
@@ -72,7 +72,7 @@ class AblationRunner:
                     # Run/Get Pipeline output
                     if progress_callback:
                         progress_callback.update(4, "Evaluation", i * 100 // len(arms), f"Running ablation arm: {arm}")
-                    output = self.pipeline.run(video_path, method=arm, progress_callback=progress_callback, original_filename=original_filename)
+                    output = self.pipeline.run(video_path, method=arm, force=force, progress_callback=progress_callback, original_filename=original_filename)
                     out_paths_global[video_id][arm] = str(output.output_path)
                     
                     logger.info(f"[{arm}] Computing metrics (ROUGE, BERTScore, CLIPScore)...")
@@ -262,7 +262,7 @@ class AblationRunner:
         
         for i, metric in enumerate(metrics_to_plot):
             if metric in agg.columns:
-                agg[metric].plot(kind="bar", yerr=std[metric], ax=axes[i], capsize=4, color=['#4285F4', '#EA4335', '#FBBC05'])
+                agg[metric].plot(kind="bar", yerr=std[metric], ax=axes[i], capsize=4)
                 axes[i].set_title(metric.replace("_", " ").title())
                 axes[i].set_ylabel("Score")
                 axes[i].set_xticklabels(agg.index, rotation=0)

@@ -82,8 +82,26 @@ class Phase5Assembler:
                     continue
                 
                 audio_duration = audio_sentence.duration_seconds
-                cut_start = scene.start_seconds
-                cut_end = scene.start_seconds + audio_duration
+                
+                # Clip duration capping logic (PHASE 5 IMPROVEMENT)
+                mode = self.config.get("assembly", {}).get("clip_duration_mode", "match_audio")
+                buffer = self.config.get("assembly", {}).get("clip_buffer_seconds", 0.5)
+                
+                if mode == "match_audio":
+                    max_clip_duration = audio_duration + buffer
+                    scene_start = scene.start_seconds
+                    scene_end = scene.end_seconds
+                    scene_mid = (scene_start + scene_end) / 2
+                    
+                    # Crop centered around scene midpoint, capped to max_clip_duration
+                    cut_start = max(scene_start, scene_mid - max_clip_duration / 2)
+                    cut_end = min(scene_end, cut_start + max_clip_duration)
+                    # Recalculate duration in case it was capped by scene boundaries
+                    actual_v_duration = cut_end - cut_start
+                else:
+                    cut_start = scene.start_seconds
+                    cut_end = scene.end_seconds
+                    actual_v_duration = cut_end - cut_start
                 
                 video_seg_path = video_segments_dir / f"seg_{i:03d}.mp4"
                 
@@ -112,14 +130,43 @@ class Phase5Assembler:
                 
         if not video_segment_paths:
             raise VideoSummarizerError("No segments were successfully processed.")
-            
+                
         # 3. Concatenate video segments
         if progress_callback:
             progress_callback.update(5, "Assembly", 70, "Concatenating video segments")
             
-        logger.info("Concatenating video segments...")
+        logger.info("Concatenating video segments with matching padding...")
+        
+        # We need to add video padding to match audio padding
+        padding_ms = self.config.get("tts", {}).get("silence_padding_ms", 200)
+        padding_s = padding_ms / 1000.0
+        
+        padded_video_segments = []
+        for i, v_path in enumerate(video_segment_paths):
+            padded_video_segments.append(v_path)
+            
+            # Add padding after every segment except the last one
+            if i < len(video_segment_paths) - 1:
+                # Calculate necessary spacer to maintain audio sync
+                # We want: clip_duration + spacer_duration = audio_duration + padding_s
+                seg_metadata = assembled_segments[i]
+                v_dur = seg_metadata.source_time_range[1] - seg_metadata.source_time_range[0]
+                
+                # Find matching audio duration
+                audio_sentence = next((s for s in audio_manifest.sentences if s.id == seg_metadata.sentence_id), None)
+                a_dur = audio_sentence.duration_seconds if audio_sentence else v_dur
+                
+                spacer_duration = (a_dur + padding_s) - v_dur
+                
+                if spacer_duration > 0.01: # Only add if significant
+                    spacer_path = temp_dir / f"spacer_{i:03d}.mp4"
+                    self._generate_video_spacer(v_path, spacer_duration, spacer_path)
+                    padded_video_segments.append(spacer_path)
+                elif spacer_duration < -0.01:
+                    logger.warning(f"Segment {i} video ({v_dur:.2f}s) is longer than audio+padding ({a_dur+padding_s:.2f}s). Drift may occur.")
+
         concat_video_path = temp_dir / "concat_video_silent.mp4"
-        concat_videos(video_segment_paths, concat_video_path)
+        concat_videos(padded_video_segments, concat_video_path)
         
         # 4. Concatenate audio segments with padding
         if progress_callback:
@@ -127,18 +174,22 @@ class Phase5Assembler:
             
         logger.info("Concatenating audio segments with padding...")
         concat_audio_path = temp_dir / "concat_audio.wav"
-        padding_ms = self.config.get("tts", {}).get("padding_ms", 200)
-        concat_audio_with_padding(audio_segment_paths, padding_ms / 1000.0, concat_audio_path)
+        concat_audio_with_padding(audio_segment_paths, padding_s, concat_audio_path)
         
         # 5. Final Mux
         if progress_callback:
             progress_callback.update(5, "Assembly", 90, "Muxing final video and audio")
             
         logger.info("Muxing final video and audio...")
+        
+        # Create per-job output folder
+        job_output_dir = self.output_dir / video_id
+        job_output_dir.mkdir(parents=True, exist_ok=True)
+        
         if original_filename:
-            final_output_path = self.output_dir / f"{video_id}_{original_filename}_summary_{method}.mp4"
+            final_output_path = job_output_dir / f"{original_filename}_summary_{method}.mp4"
         else:
-            final_output_path = self.output_dir / f"{video_id}_summary_{method}.mp4"
+            final_output_path = job_output_dir / f"summary_{method}.mp4"
         
         subtitle_path = None
         if self.config.get("subtitle", {}).get("enabled", False):
@@ -148,7 +199,7 @@ class Phase5Assembler:
         
         # 6. Metadata Output
         total_duration = sum(s.source_time_range[1] - s.source_time_range[0] for s in assembled_segments)
-        total_duration += (len(assembled_segments) - 1) * (padding_ms / 1000.0)
+        total_duration += (len(assembled_segments) - 1) * padding_s
         
         peak_vram = self.vram_manager.get_peak_usage() if self.vram_manager else 0.0
         
@@ -163,9 +214,9 @@ class Phase5Assembler:
         )
         
         if original_filename:
-            metadata_path = self.output_dir / f"{video_id}_{original_filename}_summary_{method}_metadata.json"
+            metadata_path = job_output_dir / f"{original_filename}_summary_{method}_metadata.json"
         else:
-            metadata_path = self.output_dir / f"{video_id}_summary_{method}_metadata.json"
+            metadata_path = job_output_dir / f"summary_{method}_metadata.json"
         save_model_as_json(output_metadata, metadata_path)
         
         # 7. Cleanup
@@ -180,8 +231,9 @@ class Phase5Assembler:
         return output_metadata
 
     def _generate_srt(self, segments: List[Phase5SegmentMetadata], out_path: Path) -> Path:
-        """Simple SRT generator from segments."""
-        padding_s = self.config.get("tts", {}).get("padding_ms", 200) / 1000.0
+        """Simple SRT generator from segments, adjusted for new assembly logic."""
+        padding_ms = self.config.get("tts", {}).get("silence_padding_ms", 200)
+        padding_s = padding_ms / 1000.0
         current_time = 0.0
         
         def format_ts(seconds):
@@ -193,14 +245,40 @@ class Phase5Assembler:
 
         with open(out_path, "w", encoding="utf-8") as f:
             for i, seg in enumerate(segments):
-                duration = seg.source_time_range[1] - seg.source_time_range[0]
+                v_dur = seg.source_time_range[1] - seg.source_time_range[0]
+                
+                # We align subtitle to the actual video segment
                 start_srt = format_ts(current_time)
-                end_srt = format_ts(current_time + duration)
+                end_srt = format_ts(current_time + v_dur)
                 
                 f.write(f"{i+1}\n")
                 f.write(f"{start_srt} --> {end_srt}\n")
                 f.write(f"{seg.text}\n\n")
                 
-                current_time += duration + padding_s
+                # Advance current_time by the total length of this segment (clip + spacer)
+                # In most cases, this is v_dur + padding_s (if v_dur covers audio)
+                current_time += v_dur + padding_s
                 
         return out_path
+
+    def _generate_video_spacer(self, reference_video: Path, duration: float, out_path: Path):
+        """Generate a black video segment with same resolution/fps as reference."""
+        import ffmpeg
+        try:
+            probe = ffmpeg.probe(str(reference_video))
+            video_info = next(s for s in probe['streams'] if s['codec_type'] == 'video')
+            width = video_info['width']
+            height = video_info['height']
+            fps = video_info.get('avg_frame_rate', '30/1')
+            
+            (
+                ffmpeg
+                .input(f'color=c=black:s={width}x{height}:r={fps}', f='lavfi', t=duration)
+                .output(str(out_path), vcodec='libx264', pix_fmt='yuv420p')
+                .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
+            )
+        except Exception as e:
+            logger.error(f"Failed to generate video spacer: {e}")
+            # Fallback: copy a tiny bit of the original video but blacked out if possible
+            # Or just raise
+            raise FFmpegError(f"Video spacer generation failed: {e}")

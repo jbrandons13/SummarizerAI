@@ -50,7 +50,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Run Evaluation Ablation Study")
     parser.add_argument("--videos", type=str, required=True, help="Glob pattern for eval videos (e.g. 'data/eval/*.mp4')")
-    parser.add_argument("--arms", type=str, default="random,caption_cosine,siglip_direct", help="Comma-separated list of arms to evaluate")
+    parser.add_argument("--arms", type=str, default="random,caption_cosine,caption_temporal,siglip_direct,siglip_temporal", help="Comma-separated list of arms to evaluate")
     parser.add_argument("--config", type=str, default="configs/default.yaml", help="Path to config file")
     parser.add_argument("--output", type=str, default="results/", help="Directory to save evaluation results")
     

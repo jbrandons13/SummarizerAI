@@ -25,7 +25,7 @@ executor = ThreadPoolExecutor(max_workers=1)
 def run_pipeline_task(job_id: str, video_path: Path, config_path: str, method: str, 
                       tts_backend: str = "kokoro", llm_backend: str = "groq", 
                       style: str = "informative", target_duration: int = 90,
-                      original_filename: str = None):
+                      original_filename: str = None, force: bool = False):
     job = JOBS[job_id]
     job["status"] = "processing"
     job["start_time"] = time.time()
@@ -54,13 +54,18 @@ def run_pipeline_task(job_id: str, video_path: Path, config_path: str, method: s
         if method == "all":
             from src.eval.run_ablation import AblationRunner
             runner = AblationRunner(config)
-            _, out_paths_global = runner.run([video_path], ["random", "caption_cosine", "siglip_direct"], progress_callback=callback, original_filename=original_filename)
+            _, out_paths_global = runner.run(
+                [video_path], 
+                ["random", "caption_cosine", "caption_temporal", "siglip_direct", "siglip_temporal"], 
+                force=force,
+                progress_callback=callback, original_filename=original_filename
+            )
             out_paths = out_paths_global[video_path.stem]
             job["outputs"] = out_paths
-            output_path = out_paths.get("siglip_direct", list(out_paths.values())[0])
+            output_path = out_paths.get("siglip_temporal", out_paths.get("siglip_direct", list(out_paths.values())[0]))
             metadata = {}
         else:
-            output = pipeline.run(video_path, method=method, progress_callback=callback, original_filename=original_filename)
+            output = pipeline.run(video_path, method=method, force=force, progress_callback=callback, original_filename=original_filename)
             job["outputs"] = {method: output.output_path}
             output_path = output.output_path
             metadata = output.model_dump()

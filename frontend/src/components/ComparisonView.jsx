@@ -26,10 +26,10 @@ export default function ComparisonView({ method, outputs, onSeekAll }) {
         {isComparison ? 'Ablation Study: Retrieval Method Comparison' : 'Summary Results'}
       </div>
       
-      <div className={`grid gap-4 ${isComparison ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
+      <div className={`grid gap-4 ${isComparison ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
         {isComparison ? (
           <>
-            {['random', 'caption_cosine', 'siglip_direct'].map(arm => (
+            {Object.keys(outputs).map(arm => (
               <div key={arm} className="space-y-3">
                 <VideoPlayer 
                   url={outputs[arm]?.video_url} 
