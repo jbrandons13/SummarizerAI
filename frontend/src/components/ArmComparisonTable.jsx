@@ -9,6 +9,8 @@ export default function ArmComparisonTable({ arms }) {
     { key: 'bertscore_mean', label: 'BERTScore (Semantic)', higherBetter: true },
     { key: 'processing_time', label: 'Processing Time', higherBetter: false },
     { key: 'vram_peak', label: 'Peak VRAM (MB)', higherBetter: false },
+    { key: 'temporal_acc_15s', label: 'Temporal Acc (15s)', higherBetter: true },
+    { key: 'visual_coherence_mean', label: 'Visual Coherence', higherBetter: true },
   ];
 
   const armList = Object.keys(arms);

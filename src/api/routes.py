@@ -150,8 +150,11 @@ async def get_result(job_id: str):
         }
         # Try to find output videos in data/output
         output_dir = Path("data/output")
-        # Match both {job_id}_summary_*.json and {job_id}/{orig}_summary_*.json (recursive)
-        metadata_files = list(output_dir.glob(f"**/{job_id}*_summary_*_metadata.json"))
+        # Match both {job_id}_summary_*.json and {job_id}/*_summary_*.json
+        metadata_files = list(output_dir.glob(f"{job_id}*_summary_*_metadata.json"))
+        job_dir = output_dir / job_id
+        if job_dir.exists():
+            metadata_files.extend(list(job_dir.glob("*_summary_*_metadata.json")))
         
         for metadata_file in metadata_files:
             try:
@@ -160,11 +163,15 @@ async def get_result(job_id: str):
                 if "_summary_" in filename:
                     method = filename.split("_summary_")[1].replace("_metadata.json", "")
                     
-                    # Find corresponding video (might have original_filename in it)
-                    video_pattern = f"{job_id}*_summary_{method}.mp4"
-                    video_matches = list(output_dir.glob(video_pattern))
-                    if video_matches:
-                        job["outputs"][method] = str(video_matches[0])
+                    # Video usually has same name but .mp4 extension
+                    video_path = metadata_file.with_suffix(".mp4")
+                    if video_path.exists():
+                        job["outputs"][method] = str(video_path)
+                    else:
+                        # Fallback to loose search in same folder
+                        video_matches = list(metadata_file.parent.glob(f"*_summary_{method}.mp4"))
+                        if video_matches:
+                            job["outputs"][method] = str(video_matches[0])
             except Exception as e:
                 logger.warning(f"Failed to recover arm from {metadata_file.name}: {e}")
         
@@ -358,13 +365,22 @@ async def get_eval_dashboard():
         for arm in df["arm"].unique():
             arm_df = df[df["arm"] == arm]
             # Use .get() or check columns to avoid KeyErrors, and handle NaN
+            # Filter out NaN to avoid dragging down means with old data
+            def safe_mean(col_name):
+                if col_name in arm_df.columns:
+                    series = arm_df[col_name].dropna()
+                    return float(series.mean()) if not series.empty else 0.0
+                return 0.0
+
             stats = {
-                "clipscore_mean": float(arm_df["clipscore_mean"].mean() if "clipscore_mean" in arm_df.columns else 0),
+                "clipscore_mean": safe_mean("clipscore_mean"),
                 "clipscore_std": float(arm_df["clipscore_mean"].std() if "clipscore_mean" in arm_df.columns else 0),
-                "rouge_l_mean": float(arm_df["rouge_l"].mean() if "rouge_l" in arm_df.columns else 0),
-                "bertscore_mean": float(arm_df["bertscore"].mean() if "bertscore" in arm_df.columns else 0),
-                "processing_time": float(arm_df["total_time_sec"].mean() if "total_time_sec" in arm_df.columns else 0),
+                "rouge_l_mean": safe_mean("rouge_l"),
+                "bertscore_mean": safe_mean("bertscore"),
+                "processing_time": safe_mean("total_time_sec"),
                 "vram_peak": float(arm_df["peak_vram_gb"].mean() * 1024 if "peak_vram_gb" in arm_df.columns else 0),
+                "temporal_acc_15s": safe_mean("temporal_acc_15s"),
+                "visual_coherence_mean": safe_mean("visual_coherence_mean"),
             }
             # Clean up NaNs
             for k, v in stats.items():

@@ -23,10 +23,26 @@ models:
   siglip:
     model_name: "google/siglip2-so400m-patch16-naflex"
 
+keyframe_extraction:
+  frames_per_scene_siglip: 5
+  frames_per_scene_caption: 3
+  min_frames_short_scene: 1   # scenes < 1.5s
+  similarity_pooling: "top_k_mean"
+  top_k: 2
+
 retrieval:
   use_temporal_guidance: true
   temporal_weight: 0.3
   temporal_sigma: 30.0
+  matching_algorithm: "dp"  # "greedy" | "hungarian" | "dp"
+  
+  # DP parameters
+  dp_jump_penalty: 0.3
+  dp_reuse_bonus: 0.3
+  dp_backward_penalty: 0.5
+  
+  # Hungarian parameters
+  hungarian_reuse_penalty: 0.2
 
 summarization:
   max_output_duration_seconds: 90

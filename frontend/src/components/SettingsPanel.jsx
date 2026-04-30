@@ -22,8 +22,10 @@ export default function SettingsPanel({ settings, onChange }) {
             <option value="caption_cosine">Caption cosine (Semantic)</option>
             <option value="caption_temporal">Caption + Temporal</option>
             <option value="siglip_direct">SigLIP direct (Semantic)</option>
-            <option value="siglip_temporal">SigLIP + Temporal</option>
-            <option value="all">Compare all 5 arms</option>
+            <option value="siglip_temporal">SigLIP + Temporal (Greedy)</option>
+            <option value="siglip_temporal_hungarian">SigLIP + Temporal (Hungarian)</option>
+            <option value="siglip_temporal_dp">SigLIP + Temporal (Viterbi/DP)</option>
+            <option value="all">Compare all 6 arms</option>
           </select>
         </div>
 

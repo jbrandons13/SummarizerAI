@@ -52,8 +52,10 @@ class KeyframeScene(BaseModel):
     id: int
     start_seconds: float
     end_seconds: float
-    keyframe_path: str
-    keyframe_timestamp: float
+    keyframe_path: str                       # midpoint frame (backward compat)
+    keyframe_timestamp: float                # midpoint timestamp (backward compat)
+    multi_frame_paths: List[str] = []        # NEW: paths to all sampled frames
+    multi_frame_timestamps: List[float] = [] # NEW: timestamps of all sampled frames
 
 class KeyframesManifest(BaseModel):
     video_id: str
@@ -67,7 +69,9 @@ class SceneMatch(BaseModel):
     sentence_id: int
     matched_scene_id: int
     score: float
-    alternatives: List[AlternativeMatch]
+    best_frame_path: str = ""           # NEW: frame within scene that scored best
+    best_frame_timestamp: float = 0.0   # NEW: timestamp of winning frame
+    alternatives: List[AlternativeMatch] = []
 
 class RetrievalOutput(BaseModel):
     video_id: str
@@ -78,6 +82,7 @@ class Phase5SegmentMetadata(BaseModel):
     sentence_id: int
     text: str
     source_scene_id: int
+    best_frame_timestamp: float = 0.0
     source_time_range: List[float] # [start, end]
     audio_path: str
     similarity_score: float

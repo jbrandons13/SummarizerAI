@@ -125,6 +125,8 @@ export default function DashboardPage({ onNavigate }) {
               <MetricChart data={data.arms} metric="clipscore_mean" label="Visual Relevance (CLIP)" color="blue" />
               <MetricChart data={data.arms} metric="rouge_l_mean" label="Content Overlap (ROUGE-L)" color="purple" />
               <MetricChart data={data.arms} metric="vram_peak" label="Peak VRAM Usage (MB)" color="orange" />
+              <MetricChart data={data.arms} metric="temporal_acc_15s" label="Temporal Accuracy (15s)" color="emerald" />
+              <MetricChart data={data.arms} metric="visual_coherence_mean" label="Visual Coherence (SigLIP)" color="pink" />
             </div>
           </div>
         </div>

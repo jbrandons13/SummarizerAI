@@ -104,3 +104,76 @@ def compute_retrieval_recall_at_k(predicted_matches: List[int], ground_truth_mat
             hits += 1
             
     return hits / total
+
+def temporal_alignment_score(matches, summary, manifest, thresholds=(5, 15, 30, 60)):
+    """
+    Measures how close retrieved scenes are to source content location.
+    """
+    import numpy as np
+    errors = []
+    video_duration = max(s.end_seconds for s in manifest.scenes)
+    within_counts = {t: 0 for t in thresholds}
+
+    for match in matches:
+        sentence = summary.sentences[match.sentence_id]
+        scene = next(s for s in manifest.scenes if s.id == match.source_scene_id)
+
+        hint = sentence.source_timestamp_hint
+        if not hint or len(hint) < 2:
+            continue
+
+        # Use the matched frame's timestamp if available, else scene midpoint
+        retrieved_ts = match.best_frame_timestamp or scene.keyframe_timestamp
+
+        if hint[0] <= retrieved_ts <= hint[1]:
+            error = 0.0
+        else:
+            error = min(abs(retrieved_ts - hint[0]), abs(retrieved_ts - hint[1]))
+
+        errors.append(error)
+        for t in thresholds:
+            if error <= t:
+                within_counts[t] += 1
+
+    if not errors:
+        return {"mean_temporal_error": -1, "n_evaluated": 0}
+
+    result = {
+        "n_evaluated": len(errors),
+        "mean_temporal_error_seconds": float(np.mean(errors)),
+        "median_temporal_error_seconds": float(np.median(errors)),
+        "normalized_temporal_error": float(np.mean(errors) / video_duration),
+    }
+    for t in thresholds:
+        result[f"temporal_accuracy_within_{t}s"] = within_counts[t] / len(errors)
+    return result
+
+def visual_coherence_score(matches, frame_embeddings):
+    """
+    Average cosine similarity between consecutive matched FRAMES.
+    """
+    import numpy as np
+    consecutive_sims = []
+
+    for i in range(len(matches) - 1):
+        key_a = (matches[i].source_scene_id, matches[i].best_frame_timestamp)
+        key_b = (matches[i + 1].source_scene_id, matches[i + 1].best_frame_timestamp)
+
+        emb_a = frame_embeddings.get(key_a)
+        emb_b = frame_embeddings.get(key_b)
+        if emb_a is None or emb_b is None:
+            continue
+
+        norm_a, norm_b = np.linalg.norm(emb_a), np.linalg.norm(emb_b)
+        if norm_a == 0 or norm_b == 0:
+            continue
+        consecutive_sims.append(float(np.dot(emb_a, emb_b) / (norm_a * norm_b)))
+
+    if not consecutive_sims:
+        return {"visual_coherence_mean": 0.0, "visual_coherence_std": 0.0, "n_pairs": 0}
+
+    return {
+        "visual_coherence_mean": float(np.mean(consecutive_sims)),
+        "visual_coherence_std": float(np.std(consecutive_sims)),
+        "n_pairs": len(consecutive_sims),
+    }

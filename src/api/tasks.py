@@ -56,7 +56,7 @@ def run_pipeline_task(job_id: str, video_path: Path, config_path: str, method: s
             runner = AblationRunner(config)
             _, out_paths_global = runner.run(
                 [video_path], 
-                ["random", "caption_cosine", "caption_temporal", "siglip_direct", "siglip_temporal"], 
+                ["random", "caption_temporal", "siglip_direct", "siglip_temporal", "siglip_temporal_hungarian", "siglip_temporal_dp"], 
                 force=force,
                 progress_callback=callback, original_filename=original_filename
             )

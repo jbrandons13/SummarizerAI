@@ -81,27 +81,36 @@ class Phase5Assembler:
                     logger.warning(f"No scene found for ID {match.matched_scene_id}, skipping segment.")
                     continue
                 
+                # Get video info for global boundaries
+                video_info = get_video_info(original_video_path)
+                total_video_duration = float(video_info.get('duration', 10000))
+                
                 audio_duration = audio_sentence.duration_seconds
+                padding_ms = self.config.get("tts", {}).get("silence_padding_ms", 200)
+                padding_s = padding_ms / 1000.0
                 
-                # Clip duration capping logic (PHASE 5 IMPROVEMENT)
-                mode = self.config.get("assembly", {}).get("clip_duration_mode", "match_audio")
-                buffer = self.config.get("assembly", {}).get("clip_buffer_seconds", 0.5)
+                # Target duration is audio + padding to avoid black gaps
+                target_duration = audio_duration + padding_s
                 
-                if mode == "match_audio":
-                    max_clip_duration = audio_duration + buffer
-                    scene_start = scene.start_seconds
-                    scene_end = scene.end_seconds
-                    scene_mid = (scene_start + scene_end) / 2
+                # Use best frame timestamp if available, else scene midpoint
+                scene_start = scene.start_seconds
+                scene_end = scene.end_seconds
+                center_ts = match.best_frame_timestamp or (scene_start + scene_end) / 2
+                
+                # Calculate cut boundaries centered on center_ts, but allow expansion
+                # outside scene boundaries to fill the target duration
+                cut_start = center_ts - (target_duration / 2)
+                cut_end = cut_start + target_duration
+                
+                # Clamp to global video boundaries [0, total_duration]
+                if cut_start < 0:
+                    cut_start = 0
+                    cut_end = min(total_video_duration, target_duration)
+                elif cut_end > total_video_duration:
+                    cut_end = total_video_duration
+                    cut_start = max(0, cut_end - target_duration)
                     
-                    # Crop centered around scene midpoint, capped to max_clip_duration
-                    cut_start = max(scene_start, scene_mid - max_clip_duration / 2)
-                    cut_end = min(scene_end, cut_start + max_clip_duration)
-                    # Recalculate duration in case it was capped by scene boundaries
-                    actual_v_duration = cut_end - cut_start
-                else:
-                    cut_start = scene.start_seconds
-                    cut_end = scene.end_seconds
-                    actual_v_duration = cut_end - cut_start
+                actual_v_duration = cut_end - cut_start
                 
                 video_seg_path = video_segments_dir / f"seg_{i:03d}.mp4"
                 
@@ -119,6 +128,7 @@ class Phase5Assembler:
                     sentence_id=match.sentence_id,
                     text=audio_sentence.text,
                     source_scene_id=match.matched_scene_id,
+                    best_frame_timestamp=match.best_frame_timestamp,
                     source_time_range=[cut_start, cut_end],
                     audio_path=str(audio_sentence.audio_path),
                     similarity_score=match.score
@@ -156,14 +166,13 @@ class Phase5Assembler:
                 audio_sentence = next((s for s in audio_manifest.sentences if s.id == seg_metadata.sentence_id), None)
                 a_dur = audio_sentence.duration_seconds if audio_sentence else v_dur
                 
+                # With Context Expansion, spacer_duration should be near zero or negative
                 spacer_duration = (a_dur + padding_s) - v_dur
                 
-                if spacer_duration > 0.01: # Only add if significant
+                if spacer_duration > 0.05: # Only add if still significantly short (fallback)
                     spacer_path = temp_dir / f"spacer_{i:03d}.mp4"
                     self._generate_video_spacer(v_path, spacer_duration, spacer_path)
                     padded_video_segments.append(spacer_path)
-                elif spacer_duration < -0.01:
-                    logger.warning(f"Segment {i} video ({v_dur:.2f}s) is longer than audio+padding ({a_dur+padding_s:.2f}s). Drift may occur.")
 
         concat_video_path = temp_dir / "concat_video_silent.mp4"
         concat_videos(padded_video_segments, concat_video_path)

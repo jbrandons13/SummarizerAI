@@ -10,7 +10,10 @@ import matplotlib.pyplot as plt
 from scipy import stats
 
 from src.pipeline import VideoSummarizerPipeline
-from src.eval.metrics import compute_rouge, compute_bertscore, compute_clipscore_batch
+from src.eval.metrics import (
+    compute_rouge, compute_bertscore, compute_clipscore_batch,
+    temporal_alignment_score, visual_coherence_score
+)
 from src.eval.llm_judge import LLMJudge
 from src.utils.io import load_json_as_model
 from src.schemas import SummaryScript, RetrievalOutput, KeyframesManifest, Phase5Output
@@ -64,6 +67,20 @@ class AblationRunner:
                         with open(eval_result_path, "r") as f:
                             result = json.load(f)
                         all_results.append(result)
+                        
+                        # Fix: Ensure cached arm is included in out_paths_global
+                        # Try to find the video file in output/job_id/
+                        output_dir = Path(self.config.get("paths", {}).get("output_dir", "data/output"))
+                        job_out_dir = output_dir / video_id
+                        potential_video = job_out_dir / f"{original_filename}_summary_{arm}.mp4"
+                        if not potential_video.exists():
+                            # Fallback search
+                            matches = list(job_out_dir.glob(f"*summary_{arm}.mp4"))
+                            if matches: potential_video = matches[0]
+                        
+                        if potential_video.exists():
+                            out_paths_global[video_id][arm] = str(potential_video)
+                        
                         continue
                     except Exception as e:
                         logger.warning(f"Failed to load cached eval for {video_id}-{arm}, re-running: {e}")
@@ -147,19 +164,53 @@ class AblationRunner:
         texts = []
         video_dir = self.intermediate_dir / video_id
         for seg in output.segments:
-            kf_path = list(video_dir.glob(f"keyframes/scene_{seg.source_scene_id:03}.*"))
+            kf_path = list(video_dir.glob(f"keyframes/scene_{seg.source_scene_id:03d}*"))
             if kf_path:
                 image_paths.append(str(kf_path[0]))
                 texts.append(seg.text)
         
         clip_results = compute_clipscore_batch(image_paths, texts)
         
+        # New Metrics (Phase 4 Upgrade)
+        # Load Manifest
+        manifest_path = video_dir / "keyframes_manifest.json"
+        manifest = load_json_as_model(manifest_path, KeyframesManifest)
+        
+        # Load Summary
+        summary_path = video_dir / "summary_script.json"
+        summary = load_json_as_model(summary_path, SummaryScript)
+        
+        # 1. Temporal Alignment
+        temporal = temporal_alignment_score(output.segments, summary, manifest)
+        
+        # 2. Visual Coherence
+        # We need the frame embeddings cache.
+        # Arm C uses SigLIP. Arm B uses ST but coherence is best evaluated in SigLIP space.
+        # We'll try to load SigLIP embeddings if they exist.
+        model_slug = "google_siglip2_so400m_patch16_naflex"
+        cache_path = video_dir / f"embeddings_{model_slug}.joblib"
+        coherence = {"visual_coherence_mean": 0.0}
+        
+        if cache_path.exists():
+            try:
+                import joblib
+                frame_embeddings = joblib.load(cache_path)
+                coherence = visual_coherence_score(output.segments, frame_embeddings)
+            except Exception as e:
+                logger.warning(f"Failed to load frame embeddings for coherence metric: {e}")
+
         return {
             "rouge1": rouge["rouge1"],
             "rouge2": rouge["rouge2"],
             "rouge_l": rouge["rouge_l"],
             "bertscore": bertscore,
-            **clip_results
+            **clip_results,
+            "temporal_mean_error_s": temporal.get("mean_temporal_error_seconds"),
+            "temporal_acc_5s":  temporal.get("temporal_accuracy_within_5s"),
+            "temporal_acc_15s": temporal.get("temporal_accuracy_within_15s"),
+            "temporal_acc_30s": temporal.get("temporal_accuracy_within_30s"),
+            "temporal_acc_60s": temporal.get("temporal_accuracy_within_60s"),
+            "visual_coherence_mean": coherence.get("visual_coherence_mean", 0.0),
         }
 
     def _run_judge(self, video_id: str, arm: str) -> Dict[str, Any]:
@@ -192,20 +243,25 @@ class AblationRunner:
             with open(captions_path, "r") as f:
                 captions = json.load(f)
         
-        matched_details = []
-        for match in matches.matches:
-            cap = captions.get(str(match.matched_scene_id), "No description available.")
-            sent_text = matches.video_id # Placeholder if we don't load summary again
-            # Better load summary to get sentence text
-            matched_details.append(f"Sentence: [Text from summary]\nScene ID {match.matched_scene_id}: {cap}")
-
         # Re-load summary for accurate sentence text in matched_details
         summary_obj = load_json_as_model(summary_path, SummaryScript)
         matched_details = []
         for i, match in enumerate(matches.matches):
-            cap = captions.get(str(match.matched_scene_id), "No description available.")
-            sent_text = summary_obj.sentences[i].text
-            matched_details.append(f"- Narrator says: \"{sent_text}\"\n  Visual shows: {cap}")
+            # Try to find sentence by ID or index
+            sentence = next((s for s in summary_obj.sentences if s.id == match.sentence_id), None)
+            if not sentence and i < len(summary_obj.sentences):
+                sentence = summary_obj.sentences[i]
+            
+            sent_text = sentence.text if sentence else "Unknown sentence"
+            
+            # Lookup caption for the best frame
+            key = f"{match.matched_scene_id}_{match.best_frame_timestamp}"
+            cap = captions.get(key)
+            if not cap:
+                # Fallback to scene-level or first frame
+                cap = captions.get(str(match.matched_scene_id), "No description available.")
+            
+            matched_details.append(f"Sentence {i+1}: {sent_text}\nMatched Scene {match.matched_scene_id} Description: {cap}")
             
         matched_captions_str = "\n".join(matched_details)
         
@@ -237,7 +293,7 @@ class AblationRunner:
                 arms = [a for a in df["arm"].unique() if a != "random"]
                 for arm in arms:
                     f.write(f"### {arm} vs Random\n")
-                    for metric in ["rouge_l", "bertscore", "clipscore_mean", "visual_relevance"]:
+                    for metric in ["rouge_l", "bertscore", "clipscore_mean", "visual_relevance", "temporal_acc_15s", "visual_coherence_mean"]:
                         arm_scores = df[df["arm"] == arm][metric].tolist()
                         rand_scores = df[df["arm"] == "random"][metric].tolist()
                         if len(arm_scores) == len(rand_scores) and len(arm_scores) > 1:
@@ -252,7 +308,7 @@ class AblationRunner:
         if df.empty or "arm" not in df.columns:
             return
 
-        metrics_to_plot = ["rouge_l", "bertscore", "clipscore_mean", "information_retention", "factual_faithfulness", "visual_relevance"]
+        metrics_to_plot = ["rouge_l", "bertscore", "clipscore_mean", "visual_coherence_mean", "temporal_acc_15s", "visual_relevance"]
         
         fig, axes = plt.subplots(2, 3, figsize=(18, 10))
         axes = axes.flatten()
