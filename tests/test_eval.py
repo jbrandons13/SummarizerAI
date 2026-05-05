@@ -81,7 +81,7 @@ def test_eval_end_to_end_mocked():
         
         video_path = Path("tests/fixtures/tiny_video.mp4")
         # Only run random arm for speed
-        results_dir = runner.run([video_path], ["random"])
+        results_dir, _ = runner.run([video_path], ["random"])
         
         assert results_dir.exists()
         assert (results_dir / "ablation_results.csv").exists()

@@ -45,7 +45,21 @@ class AblationRunner:
             print(f"{'='*60}")
             
             # 1. Run common phases (1-3)
-            # This is handled by pipeline.run internally with caching
+            # This is handled by pipeline.run internally with caching.
+            # We explicitly pre-run siglip_direct once upfront so that the SigLIP embeddings
+            # are generated and dumped to disk for use in visual coherence by all arms.
+            try:
+                print("\n  Pre-computing SigLIP embeddings for visual coherence...")
+                model_slug = "google_siglip2_so400m_patch16_naflex"
+                video_dir = self.intermediate_dir / video_id
+                cache_path = video_dir / f"embeddings_{model_slug}.joblib"
+                if not cache_path.exists():
+                    matches_file = video_dir / "scene_matches_siglip_direct.json"
+                    if matches_file.exists():
+                        matches_file.unlink()
+                self.pipeline.run(video_path, method="siglip_direct", force=force, progress_callback=progress_callback, original_filename=original_filename)
+            except Exception as e:
+                logger.warning(f"Failed upfront SigLIP caching: {e}")
             
             for arm in arms:
                 # Check for cancellation between arms
@@ -191,6 +205,15 @@ class AblationRunner:
         cache_path = video_dir / f"embeddings_{model_slug}.joblib"
         coherence = {"visual_coherence_mean": 0.0}
         
+        if not cache_path.exists():
+            try:
+                from src.phase4_retrieve import SigLIP2DirectRetrieval
+                logger.info("Computing SigLIP embeddings on-the-fly for coherence metric...")
+                siglip_retriever = SigLIP2DirectRetrieval(self.config, self.pipeline.vram_manager)
+                siglip_retriever.retrieve(summary, manifest, use_timestamp_hint=False)
+            except Exception as e:
+                logger.warning(f"Failed to generate SigLIP embeddings on-the-fly: {e}")
+
         if cache_path.exists():
             try:
                 import joblib

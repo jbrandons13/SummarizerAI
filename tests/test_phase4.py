@@ -42,13 +42,13 @@ def test_phase4_full_pipeline():
     )
     
     vram_manager = VRAMManager(device_id=0)
-    orchestrator = Phase4Retrieval(vram_manager)
+    orchestrator = Phase4Retrieval({}, vram_manager)
     
-    results = orchestrator.run(video_path, summary, language="en")
+    results = orchestrator.run(video_path, summary, language="en", method="all")
     
     assert "random" in results
     assert "siglip_direct" in results
-    assert "caption_cosine" in results
+    assert "caption_temporal" in results
     
     for method, output in results.items():
         assert isinstance(output, RetrievalOutput)

@@ -334,7 +334,7 @@ async def get_eval_dashboard():
     output_dir = Path("data/output")
     out_mtime = os.path.getmtime(output_dir) if output_dir.exists() else 0
 
-    if _DASHBOARD_CACHE["data"] and _DASHBOARD_CACHE["last_mtime"] == current_mtime:
+    if _DASHBOARD_CACHE.get("data") and _DASHBOARD_CACHE.get("last_mtime") == current_mtime:
         if _DASHBOARD_CACHE.get("last_out_mtime") == out_mtime:
             logger.info("Serving dashboard from cache")
             return _DASHBOARD_CACHE["data"]
@@ -355,6 +355,15 @@ async def get_eval_dashboard():
         if not df.empty:
             if "video_id" in df.columns: df["video_id"] = df["video_id"].astype(str)
             if "job_id" in df.columns: df["job_id"] = df["job_id"].astype(str)
+            
+            # Filter to only existing data
+            if "video_id" in df.columns:
+                valid_ids = []
+                for vid in df["video_id"].unique():
+                    vid_s = str(vid)
+                    if Path(f"data/output/{vid_s}").exists() or Path(f"data/intermediate/{vid_s}").exists():
+                        valid_ids.append(vid_s)
+                df = df[df["video_id"].isin(valid_ids)]
         return df
 
     df = await anyio.to_thread.run_sync(gather_data)
@@ -410,22 +419,26 @@ async def get_eval_dashboard():
     
     # Add from CSVs (already loaded in df)
     if not df.empty and "video_id" in df.columns:
-        # We don't have timestamps in the CSV, but we can assume they are older or use current
         for vid in df["video_id"].unique():
             vid_s = str(vid)
-            master_jobs[vid_s] = {"job_id": vid_s, "timestamp": 0, "video_id": vid_s}
+            job_dir = Path("data/output") / vid_s
+            inter_dir = Path("data/intermediate") / vid_s
+            # Skip if the user deleted these directories
+            if not job_dir.exists() and not inter_dir.exists():
+                continue
+            ts = os.path.getmtime(job_dir) if job_dir.exists() else 0
+            master_jobs[vid_s] = {"job_id": vid_s, "timestamp": ts, "video_id": vid_s}
             
     # Add/Update from data/output (prefer these timestamps as they are more accurate for recent work)
     for meta_path in job_metadata_files:
         try:
-            # Format: {job_id}_{original_name}_summary_*.json or {job_id}_summary_*.json
-            # Extract the UUID (which is the first part separated by _)
-            job_id_candidate = meta_path.name.split("_")[0]
-            if len(job_id_candidate) == 36 and "-" in job_id_candidate:
-                job_id = job_id_candidate
-            else:
-                # Fallback
-                job_id = meta_path.name.split("_summary_")[0]
+            job_id = meta_path.parent.name
+            if job_id == "output":
+                job_id_candidate = meta_path.name.split("_")[0]
+                if len(job_id_candidate) == 36 and "-" in job_id_candidate:
+                    job_id = job_id_candidate
+                else:
+                    job_id = meta_path.name.split("_summary_")[0]
                 
             ts = os.path.getmtime(meta_path)
             if job_id not in master_jobs or ts > master_jobs[job_id]["timestamp"]:
@@ -451,13 +464,16 @@ async def get_eval_dashboard():
 
 @router.delete("/result/{job_id}")
 async def delete_job(job_id: str):
+    if not job_id or len(job_id) < 5 or job_id in (".", "..", "results", "output", "intermediate"):
+        raise HTTPException(status_code=400, detail="Invalid job ID")
+        
     # 1. Remove from memory
     if job_id in JOBS:
         del JOBS[job_id]
         
     # 2. Remove intermediate files
     intermediate_dir = Path("data/intermediate") / job_id
-    if intermediate_dir.exists():
+    if intermediate_dir.exists() and len(job_id) > 10:
         shutil.rmtree(intermediate_dir)
         
     # 3. Remove output files
@@ -465,7 +481,7 @@ async def delete_job(job_id: str):
     
     # Remove job-specific output folder if exists
     job_output_dir = output_dir / job_id
-    if job_output_dir.exists():
+    if job_output_dir.exists() and len(job_id) > 10:
         try:
             shutil.rmtree(job_output_dir)
         except Exception as e:
@@ -482,23 +498,43 @@ async def delete_job(job_id: str):
 
     # 4. Remove from ablation results (History)
     results_dir = Path("results")
-    for csv_path in results_dir.glob("**/ablation_results.csv"):
-        try:
-            df = pd.read_csv(csv_path)
-            # Both video_id and job_id might be used in columns
-            cols = df.columns
-            id_col = "video_id" if "video_id" in cols else ("job_id" if "job_id" in cols else None)
-            
-            if id_col and (df[id_col].astype(str) == str(job_id)).any():
-                df_filtered = df[df[id_col].astype(str) != str(job_id)]
-                if df_filtered.empty:
-                    # Delete the whole folder if no more records
-                    shutil.rmtree(csv_path.parent)
-                else:
-                    df_filtered.to_csv(csv_path, index=False)
-        except Exception as e:
-            logger.warning(f"Failed to clean up CSV {csv_path}: {e}")
-            
+    if results_dir.exists():
+        csv_paths = list(results_dir.glob("**/ablation_results.csv"))
+        for csv_path in csv_paths:
+            if not csv_path.exists():
+                continue
+            try:
+                df = pd.read_csv(csv_path)
+                # Both video_id and job_id might be used in columns
+                cols = df.columns
+                id_col = "video_id" if "video_id" in cols else ("job_id" if "job_id" in cols else None)
+                
+                if id_col and (df[id_col].astype(str) == str(job_id)).any():
+                    df_filtered = df[df[id_col].astype(str) != str(job_id)]
+                    if df_filtered.empty:
+                        # Unlink CSV
+                        try:
+                            csv_path.unlink()
+                        except Exception:
+                            pass
+                        # Only delete the parent if it's not the results folder and it's empty
+                        try:
+                            parent_dir = csv_path.parent
+                            if parent_dir.name != "results" and parent_dir != results_dir:
+                                if parent_dir.exists() and not any(parent_dir.iterdir()):
+                                    shutil.rmtree(parent_dir)
+                        except Exception:
+                            pass
+                    else:
+                        df_filtered.to_csv(csv_path, index=False)
+            except Exception as e:
+                logger.warning(f"Failed to clean up CSV {csv_path}: {e}")
+                
+    # Clear cache to force a fresh reload on next fetch
+    _DASHBOARD_CACHE["data"] = None
+    _DASHBOARD_CACHE["last_mtime"] = 0
+    _DASHBOARD_CACHE["last_out_mtime"] = 0
+    
     return {"status": "ok", "message": f"Job {job_id} deleted successfully from files and history"}
 
 @router.get("/eval/export")

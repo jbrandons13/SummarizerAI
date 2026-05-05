@@ -105,25 +105,44 @@ def compute_retrieval_recall_at_k(predicted_matches: List[int], ground_truth_mat
             
     return hits / total
 
+def get_val(obj, key, default=None):
+    if obj is None:
+        return default
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
 def temporal_alignment_score(matches, summary, manifest, thresholds=(5, 15, 30, 60)):
     """
     Measures how close retrieved scenes are to source content location.
     """
     import numpy as np
     errors = []
+    if not manifest.scenes:
+        return {"mean_temporal_error": -1, "n_evaluated": 0}
     video_duration = max(s.end_seconds for s in manifest.scenes)
     within_counts = {t: 0 for t in thresholds}
 
     for match in matches:
-        sentence = summary.sentences[match.sentence_id]
-        scene = next(s for s in manifest.scenes if s.id == match.source_scene_id)
+        match_sent_id = get_val(match, "sentence_id")
+        sentence = next((s for s in summary.sentences if s.id == match_sent_id), None)
+        if not sentence:
+            if match_sent_id is not None and 0 <= match_sent_id < len(summary.sentences):
+                sentence = summary.sentences[match_sent_id]
+            else:
+                continue
+
+        scene_id = get_val(match, "matched_scene_id", get_val(match, "source_scene_id", None))
+        scene = next((s for s in manifest.scenes if s.id == scene_id), None)
+        if not scene:
+            continue
 
         hint = sentence.source_timestamp_hint
         if not hint or len(hint) < 2:
             continue
 
         # Use the matched frame's timestamp if available, else scene midpoint
-        retrieved_ts = match.best_frame_timestamp or scene.keyframe_timestamp
+        retrieved_ts = get_val(match, "best_frame_timestamp", 0.0) or scene.keyframe_timestamp
 
         if hint[0] <= retrieved_ts <= hint[1]:
             error = 0.0
@@ -155,12 +174,36 @@ def visual_coherence_score(matches, frame_embeddings):
     import numpy as np
     consecutive_sims = []
 
+    def find_nearest_embedding(scene_id, ts, frame_embeddings):
+        best_key = None
+        min_dist = float('inf')
+        for k in frame_embeddings.keys():
+            if k[0] == scene_id:
+                dist = abs(k[1] - ts)
+                if dist < min_dist:
+                    min_dist = dist
+                    best_key = k
+        if best_key:
+            return frame_embeddings[best_key]
+        return None
+
     for i in range(len(matches) - 1):
-        key_a = (matches[i].source_scene_id, matches[i].best_frame_timestamp)
-        key_b = (matches[i + 1].source_scene_id, matches[i + 1].best_frame_timestamp)
+        scene_a = get_val(matches[i], "matched_scene_id", get_val(matches[i], "source_scene_id", None))
+        ts_a = get_val(matches[i], "best_frame_timestamp", 0.0)
+        scene_b = get_val(matches[i + 1], "matched_scene_id", get_val(matches[i + 1], "source_scene_id", None))
+        ts_b = get_val(matches[i + 1], "best_frame_timestamp", 0.0)
+
+        key_a = (scene_a, ts_a)
+        key_b = (scene_b, ts_b)
 
         emb_a = frame_embeddings.get(key_a)
+        if emb_a is None:
+            emb_a = find_nearest_embedding(scene_a, ts_a, frame_embeddings)
+            
         emb_b = frame_embeddings.get(key_b)
+        if emb_b is None:
+            emb_b = find_nearest_embedding(scene_b, ts_b, frame_embeddings)
+
         if emb_a is None or emb_b is None:
             continue
 

@@ -11,7 +11,10 @@ export default function MetricChart({ data, metric, label, color = 'blue' }) {
     blue: 'from-blue-600 to-indigo-500',
     purple: 'from-purple-600 to-fuchsia-500',
     green: 'from-emerald-500 to-teal-400',
-    orange: 'from-orange-500 to-amber-400'
+    orange: 'from-orange-500 to-amber-400',
+    emerald: 'from-emerald-600 to-green-400',
+    pink: 'from-pink-600 to-rose-400',
+    teal: 'from-teal-600 to-cyan-400'
   };
 
   return (

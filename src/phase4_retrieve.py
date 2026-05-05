@@ -1,4 +1,5 @@
 import os
+print("DEBUG: PHASE 4 MODULE LOADED")
 import json
 import logging
 import random
@@ -196,6 +197,35 @@ class RetrievalBackend(ABC):
         """Match sentences to scenes."""
         pass
 
+    def apply_temporal_prior(
+        self, 
+        sim_matrix: np.ndarray, 
+        summary: SummaryScript, 
+        manifest: KeyframesManifest,
+        use_temporal: bool = True,
+        beta: float = 0.3,
+        sigma: float = 30.0
+    ) -> np.ndarray:
+        """
+        Normalize semantic scores and optionally apply temporal prior.
+        """
+        num_sentences, num_scenes = sim_matrix.shape
+        kf_timestamps = [s.keyframe_timestamp for s in manifest.scenes]
+        
+        new_sim_matrix = np.zeros_like(sim_matrix)
+        for i in range(num_sentences):
+            semantic_scores = sim_matrix[i]
+            if use_temporal:
+                temporal_scores = compute_temporal_scores(
+                    summary.sentences[i].source_timestamp_hint,
+                    kf_timestamps,
+                    sigma=sigma
+                )
+                new_sim_matrix[i] = (1 - beta) * min_max_normalize(semantic_scores) + beta * min_max_normalize(temporal_scores)
+            else:
+                new_sim_matrix[i] = min_max_normalize(semantic_scores)
+        return new_sim_matrix
+
     def greedy_assign(self, sim_matrix: np.ndarray, allow_reuse: bool = True) -> List[int]:
         """
         Greedy assignment: per-sentence argmax.
@@ -229,6 +259,7 @@ class RetrievalBackend(ABC):
             return assignment
 
     def hungarian_align(self, sim_matrix: np.ndarray, reuse_penalty: float = 0.2) -> List[int]:
+        print(f"DEBUG: Hungarian called! reuse_p={reuse_penalty}, sim shape={sim_matrix.shape}")
         """
         Global optimal assignment via Hungarian algorithm.
         """
@@ -251,6 +282,7 @@ class RetrievalBackend(ABC):
         reuse_bonus: float = 0.3,
         backward_penalty: float = 0.5,
     ) -> List[int]:
+        print(f"DEBUG: DP called! jp={jump_penalty}, rb={reuse_bonus}, bp={backward_penalty}, sim shape={sim_matrix.shape}")
         """
         Viterbi-style DP for sentence-to-scene assignment with transition costs.
         """
@@ -443,22 +475,12 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
         # 4. Apply Temporal Guidance
         ret_cfg = self.config.get("retrieval", {})
         use_temporal = ret_cfg.get("use_temporal_guidance", True) and use_timestamp_hint
-        beta = ret_cfg.get("temporal_weight", 0.3)
-        sigma = ret_cfg.get("temporal_sigma", 30.0)
-
-        kf_timestamps = [s.keyframe_timestamp for s in manifest.scenes]
-        
-        for i in range(num_sentences):
-            semantic_scores = sim_matrix[i]
-            if use_temporal:
-                temporal_scores = compute_temporal_scores(
-                    summary.sentences[i].source_timestamp_hint,
-                    kf_timestamps,
-                    sigma=sigma
-                )
-                sim_matrix[i] = (1 - beta) * min_max_normalize(semantic_scores) + beta * min_max_normalize(temporal_scores)
-            else:
-                sim_matrix[i] = min_max_normalize(semantic_scores)
+        sim_matrix = self.apply_temporal_prior(
+            sim_matrix, summary, manifest,
+            use_temporal=use_temporal,
+            beta=ret_cfg.get("temporal_weight", 0.3),
+            sigma=ret_cfg.get("temporal_sigma", 30.0)
+        )
 
         # 5. Matching Algorithm
         matching_algo = ret_cfg.get("matching_algorithm", "dp")
@@ -606,17 +628,12 @@ class CaptionCosineRetrieval(RetrievalBackend):
         # 3. Apply Temporal Guidance
         ret_cfg = self.config.get("retrieval", {})
         use_temporal = ret_cfg.get("use_temporal_guidance", True) and use_timestamp_hint
-        beta = ret_cfg.get("temporal_weight", 0.3)
-        sigma = ret_cfg.get("temporal_sigma", 30.0)
-        kf_timestamps = [s.keyframe_timestamp for s in manifest.scenes]
-
-        for i in range(num_sentences):
-            semantic_scores = sim_matrix[i]
-            if use_temporal:
-                temporal_scores = compute_temporal_scores(summary.sentences[i].source_timestamp_hint, kf_timestamps, sigma=sigma)
-                sim_matrix[i] = (1 - beta) * min_max_normalize(semantic_scores) + beta * min_max_normalize(temporal_scores)
-            else:
-                sim_matrix[i] = min_max_normalize(semantic_scores)
+        sim_matrix = self.apply_temporal_prior(
+            sim_matrix, summary, manifest,
+            use_temporal=use_temporal,
+            beta=ret_cfg.get("temporal_weight", 0.3),
+            sigma=ret_cfg.get("temporal_sigma", 30.0)
+        )
 
         # 4. Matching Algorithm
         matching_algo = ret_cfg.get("matching_algorithm", "dp")
@@ -683,8 +700,10 @@ class Phase4Retrieval:
         # format: (base_method, use_temporal, matching_algo)
         ARM_CONFIGS = {
             "random": ("random", False, "greedy"),
+            "caption_direct": ("caption_temporal", False, "greedy"),
             "caption_temporal": ("caption_temporal", True, "greedy"),
-            "siglip_direct": ("siglip_direct", False, "greedy"),
+            "caption_temporal_dp": ("caption_temporal", True, "dp"),
+            "siglip_direct": ("siglip_temporal", False, "greedy"),
             "siglip_temporal": ("siglip_temporal", True, "greedy"),
             "siglip_temporal_hungarian": ("siglip_temporal", True, "hungarian"),
             "siglip_temporal_dp": ("siglip_temporal", True, "dp")
