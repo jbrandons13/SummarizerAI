@@ -80,7 +80,7 @@ class LocalBackend(LLMBackend):
         generated_ids = self.model.generate(
             **model_inputs,
             max_new_tokens=max_new_tokens,
-            temperature=0.1,
+            temperature=0.0,
             do_sample=False
         )
         
@@ -119,7 +119,7 @@ class GroqBackend(LLMBackend):
                         {"role": "user", "content": user_prompt}
                     ],
                     model=self.model_name,
-                    temperature=0.1,
+                    temperature=0.0,
                     max_tokens=max_new_tokens,
                 )
                 usage = chat_completion.usage

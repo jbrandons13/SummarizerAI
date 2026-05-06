@@ -25,7 +25,7 @@ class AblationRunner:
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.pipeline = VideoSummarizerPipeline(config)
-        self.judge = LLMJudge()
+        self.judge = LLMJudge(backend=self.pipeline.llm_backend)
         self.results_dir = Path(config.get("paths", {}).get("results_dir", "results"))
         self.intermediate_dir = Path(config.get("paths", {}).get("intermediate_dir", "data/intermediate"))
 

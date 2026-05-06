@@ -17,37 +17,29 @@ This ablation study evaluates the performance of the video summarization pipelin
     7. `siglip_temporal_hungarian`: SigLIP + Temporal Prior + Hungarian matching
     8. `siglip_temporal_dp`: SigLIP + Temporal Prior + DP alignment
 
-## Final Aggregate Results (10/10 Videos)
+## Final Aggregate Results (Cleanrun 2026-05-05)
 
 | Arm | CLIPScore | TempAcc (15s) | VisCoher |
-|-----|-----------|---------------|----------|
-| random | 0.458 | 0.136 | 0.660 |
-| caption_direct | 0.584 | 0.255 | 0.663 |
-| caption_temporal | 0.575 | 0.758 | 0.672 |
-| caption_temporal_dp | 0.569 | 0.794 | 0.719 |
-| siglip_direct | 0.550 | 0.302 | 0.595 |
-| siglip_temporal | 0.552 | 0.902 | 0.629 |
-| siglip_temporal_hungarian | 0.553 | 0.919 | 0.630 |
-| siglip_temporal_dp | 0.555 | 0.882 | 0.635 |
+| :--- | :--- | :--- | :--- |
+| random | 0.458 | 0.111 | 0.662 |
+| caption_direct | 0.586 | 0.268 | 0.656 |
+| caption_temporal | 0.575 | 0.770 | 0.662 |
+| **caption_temporal_dp** | 0.570 | 0.806 | **0.710*** |
+| siglip_direct | 0.554 | 0.315 | 0.594 |
+| **siglip_temporal** | 0.550 | **0.902** | 0.626 |
+| siglip_temporal_hungarian | 0.551 | 0.919 | 0.628 |
+| siglip_temporal_dp | 0.554 | 0.882 | 0.632 |
 
-## Analysis of Claims
+*\* Significant improvement (p < 0.05) vs. its Greedy counterpart.*
 
-### 1. Effect of Temporal Prior
-The addition of the temporal prior significantly improves **Temporal Accuracy (TempAcc)** across both signals.
-- For **Caption**: `caption_direct` (0.255) -> `caption_temporal` (0.758). 
-- For **SigLIP**: `siglip_direct` (0.302) -> `siglip_temporal` (0.902).
-- *Observation*: Without temporal priors, both signals suffer from significant temporal drift, though SigLIP remains slightly more robust.
+## Final Statistical Analysis Summary
+- **Temporal Prior (T)** is the dominant factor, yielding massive, highly significant improvements in Temporal Accuracy (** p < 0.01) for both tracks.
+- **DP Sequence Alignment** provides a significant boost to **Visual Coherence** on the Caption track (* p < 0.05, Cohen's d=0.82) but has no significant effect on the SigLIP track.
+- **Caption Track** is significantly more visually coherent (** p < 0.01) than the SigLIP track, while the **SigLIP Track** is superior in strict temporal alignment (though not significant at n=10).
+- **Hungarian Matching** is mathematically degenerate in this regime (9/10 identical to Greedy) and provides no practical benefit.
 
-### 2. Effect of DP Sequence Alignment
-DP alignment consistently improves **Visual Coherence (VisCoher)** by enforcing logical scene transitions.
-- **Caption Track**: DP improved VisCoher from **0.672** to **0.719** (average across 10 videos).
-- **SigLIP Track**: DP improved VisCoher from **0.629** to **0.635**.
-- *Trade-off*: DP slightly decreases semantic relevance (`CLIPScore`) in the caption track (0.575 -> 0.569) as it prioritizes sequence flow.
-
-### 3. Caption vs SigLIP Comparison
-- **Semantic Quality**: The Caption track (`caption_temporal_dp`) achieves higher **CLIPScore** (0.569 vs 0.555) compared to SigLIP.
-- **Visual Coherence**: The Caption track produces significantly more visually coherent sequences (higher average VisCoher of 0.719 vs 0.635 for SigLIP).
-- **Temporal Robustness**: SigLIP remains superior in strict temporal alignment (~0.90 vs ~0.79 TempAcc), which is expected as embeddings capture more fine-grained temporal patterns than discrete captions.
-
-## Verdict
-The **Caption + Temporal Prior + DP** configuration (`caption_temporal_dp`) is the most balanced approach for video summarization, offering superior semantic relevance and the best visual flow among all tested configurations.
+## Detailed Analysis & Interpretation
+For the full per-video breakdown, significance test results, and honest interpretation for Thesis Chapter 4, please refer to:
+- [Canonical Interpretation](file:///home/wins053/Desktop/SumarizerAI-1-Gemini/video-summarizer/notes/cleanrun_interpretation.md)
+- [Per-Video Analysis](file:///home/wins053/Desktop/SumarizerAI-1-Gemini/video-summarizer/notes/per_video_analysis.md)
+- [Significance Tests Report](file:///home/wins053/Desktop/SumarizerAI-1-Gemini/video-summarizer/notes/significance_tests.md)
