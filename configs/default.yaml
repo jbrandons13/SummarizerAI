@@ -51,6 +51,9 @@ summarization:
   max_output_duration_seconds: 90
   min_segment_duration_seconds: 3.0
   relevance_threshold: 0.7
+subtitle:
+  enabled: true
+  style: "FontName=Liberation Sans,FontSize=20,PrimaryColour=&H00FFFFFF,BackColour=&H80000000,BorderStyle=4,Outline=0,Shadow=0,MarginV=30"
 tts:
   backend: kokoro
   dia_model: nari-labs/Dia-1.6B-0626

@@ -201,10 +201,15 @@ class Phase5Assembler:
             final_output_path = job_output_dir / f"summary_{method}.mp4"
         
         subtitle_path = None
-        if self.config.get("subtitle", {}).get("enabled", False):
+        subtitle_style = None
+        if self.config.get("subtitle", {}).get("enabled", True): # Enabled by default for "modern" request
             subtitle_path = self._generate_srt(assembled_segments, temp_dir / "subtitles.srt")
+            # Modern styling: Clean sans-serif, white text, semi-transparent black background box
+            subtitle_style = self.config.get("subtitle", {}).get("style", 
+                "FontName=Liberation Sans,FontSize=18,PrimaryColour=&H00FFFFFF,BackColour=&H80000000,BorderStyle=4,Outline=0,Shadow=0,MarginV=25"
+            )
 
-        mux_video_audio(concat_video_path, concat_audio_path, final_output_path, subtitle_path=subtitle_path)
+        mux_video_audio(concat_video_path, concat_audio_path, final_output_path, subtitle_path=subtitle_path, subtitle_style=subtitle_style)
         
         # 6. Metadata Output
         total_duration = sum(s.source_time_range[1] - s.source_time_range[0] for s in assembled_segments)
@@ -252,6 +257,23 @@ class Phase5Assembler:
             msecs = int((seconds * 1000) % 1000)
             return f"{hrs:02d}:{mins:02d}:{secs:02d},{msecs:03d}"
 
+        def wrap_text(text, width=50):
+            words = text.split()
+            lines = []
+            current_line = []
+            current_len = 0
+            for word in words:
+                if current_len + len(word) + 1 > width:
+                    lines.append(" ".join(current_line))
+                    current_line = [word]
+                    current_len = len(word)
+                else:
+                    current_line.append(word)
+                    current_len += len(word) + 1
+            if current_line:
+                lines.append(" ".join(current_line))
+            return "\n".join(lines)
+
         with open(out_path, "w", encoding="utf-8") as f:
             for i, seg in enumerate(segments):
                 v_dur = seg.source_time_range[1] - seg.source_time_range[0]
@@ -260,12 +282,13 @@ class Phase5Assembler:
                 start_srt = format_ts(current_time)
                 end_srt = format_ts(current_time + v_dur)
                 
+                wrapped_text = wrap_text(seg.text)
+                
                 f.write(f"{i+1}\n")
                 f.write(f"{start_srt} --> {end_srt}\n")
-                f.write(f"{seg.text}\n\n")
+                f.write(f"{wrapped_text}\n\n")
                 
                 # Advance current_time by the total length of this segment (clip + spacer)
-                # In most cases, this is v_dur + padding_s (if v_dur covers audio)
                 current_time += v_dur + padding_s
                 
         return out_path
