@@ -39,6 +39,10 @@ paths:
   output_dir: data/output
   raw_data_dir: data/raw
 retrieval:
+  ccma_c_max: 3
+  ccma_reuse_penalty: 0.2
+  ccma_forward_jump_penalty: 0.1
+  ccma_backward_jump_penalty: 2.0
   cv_align_k_max: 3
   cv_align_lambda: 0.1
   dp_backward_penalty: 0.5

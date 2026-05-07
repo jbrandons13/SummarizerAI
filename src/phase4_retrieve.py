@@ -446,6 +446,91 @@ class RetrievalBackend(ABC):
         
         return assignment
 
+    def ccma_align_sequence(
+        self,
+        sim_matrix: np.ndarray,
+        scenes: List[KeyframeScene],
+        video_duration: float,
+        c_max: int = 3,
+        reuse_penalty: float = 0.2,
+        forward_jump_penalty: float = 0.1,
+        backward_jump_penalty: float = 2.0,
+    ) -> List[int]:
+        """
+        Capacity-Constrained Monotonic Alignment (CCMA).
+        
+        A 3D DP algorithm that explicitly bounds the consecutive reuse of any scene
+        to mathematically eliminate the 'scene-attractor' failure mode.
+        """
+        N, M = sim_matrix.shape
+        sim_matrix = np.nan_to_num(sim_matrix, nan=0.0, posinf=1.0, neginf=-1e9)
+
+        if N == 1:
+            return [int(np.argmax(sim_matrix[0]))]
+            
+        if c_max < 1:
+            raise ValueError(f"c_max must be >= 1, got {c_max}")
+
+        scene_time = np.array([s.keyframe_timestamp for s in scenes])
+        
+        dp = np.full((N, M, c_max), -np.inf)
+        bp_j = np.full((N, M, c_max), -1, dtype=int)
+        bp_c = np.full((N, M, c_max), -1, dtype=int)
+        
+        dp[0, :, 0] = sim_matrix[0]
+        
+        for i in range(1, N):
+            prev_best_c = np.max(dp[i-1], axis=1)
+            prev_best_c_idx = np.argmax(dp[i-1], axis=1)
+            
+            for j in range(M):
+                best_score = -np.inf
+                best_j_prev = -1
+                best_c_prev = -1
+                
+                for j_prev in range(M):
+                    if j_prev == j:
+                        continue
+                    
+                    dt = (scene_time[j] - scene_time[j_prev]) / max(video_duration, 1e-6)
+                    if dt >= 0:
+                        cost = forward_jump_penalty * dt
+                    else:
+                        cost = backward_jump_penalty * abs(dt)
+                        
+                    score = prev_best_c[j_prev] - cost
+                    if score > best_score:
+                        best_score = score
+                        best_j_prev = j_prev
+                        best_c_prev = prev_best_c_idx[j_prev]
+                        
+                if best_score > -np.inf:
+                    dp[i, j, 0] = sim_matrix[i, j] + best_score
+                    bp_j[i, j, 0] = best_j_prev
+                    bp_c[i, j, 0] = best_c_prev
+                    
+                for c_idx in range(1, min(i + 1, c_max)):
+                    prev_score = dp[i-1, j, c_idx-1]
+                    if prev_score > -np.inf:
+                        dp[i, j, c_idx] = sim_matrix[i, j] + prev_score - reuse_penalty
+                        bp_j[i, j, c_idx] = j
+                        bp_c[i, j, c_idx] = c_idx - 1
+
+        flat_idx = np.argmax(dp[N-1])
+        final_j, final_c = np.unravel_index(flat_idx, (M, c_max))
+        
+        assignment = [0] * N
+        assignment[N-1] = int(final_j)
+        
+        cur_j, cur_c = int(final_j), int(final_c)
+        for i in range(N-1, 0, -1):
+            prev_j = bp_j[i, cur_j, cur_c]
+            prev_c = bp_c[i, cur_j, cur_c]
+            assignment[i-1] = int(prev_j)
+            cur_j, cur_c = int(prev_j), int(prev_c)
+            
+        return assignment
+
     def compute_path_score(self, sim_matrix, assignment, transition_matrix=None):
         """Helper for sanity checks."""
         s = sim_matrix[0, assignment[0]]
@@ -635,6 +720,17 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
                 jump_penalty=jump_p, reuse_bonus=reuse_b, backward_penalty=back_p,
                 k_max=k_max, lam=lam
             )
+        elif matching_algo == "ccma":
+            video_dur = max(s.end_seconds for s in manifest.scenes)
+            c_max = ret_cfg.get("ccma_c_max", 3)
+            reuse_p = ret_cfg.get("ccma_reuse_penalty", 0.2)
+            fwd_p = ret_cfg.get("ccma_forward_jump_penalty", 0.1)
+            bwd_p = ret_cfg.get("ccma_backward_jump_penalty", 2.0)
+            assignment = self.ccma_align_sequence(
+                sim_matrix, manifest.scenes, video_dur,
+                c_max=c_max, reuse_penalty=reuse_p, 
+                forward_jump_penalty=fwd_p, backward_jump_penalty=bwd_p
+            )
         else:
             assignment = self.greedy_assign(sim_matrix)
 
@@ -800,6 +896,17 @@ class CaptionCosineRetrieval(RetrievalBackend):
                 jump_penalty=jump_p, reuse_bonus=reuse_b, backward_penalty=back_p,
                 k_max=k_max, lam=lam
             )
+        elif matching_algo == "ccma":
+            video_dur = max(s.end_seconds for s in manifest.scenes)
+            c_max = ret_cfg.get("ccma_c_max", 3)
+            reuse_p = ret_cfg.get("ccma_reuse_penalty", 0.2)
+            fwd_p = ret_cfg.get("ccma_forward_jump_penalty", 0.1)
+            bwd_p = ret_cfg.get("ccma_backward_jump_penalty", 2.0)
+            assignment = self.ccma_align_sequence(
+                sim_matrix, manifest.scenes, video_dur,
+                c_max=c_max, reuse_penalty=reuse_p, 
+                forward_jump_penalty=fwd_p, backward_jump_penalty=bwd_p
+            )
         else:
             assignment = self.greedy_assign(sim_matrix)
 
@@ -860,7 +967,9 @@ class Phase4Retrieval:
             "siglip_temporal_hungarian": ("siglip_temporal", True, "hungarian"),
             "siglip_temporal_dp": ("siglip_temporal", True, "dp"),
             "caption_temporal_cvalign": ("caption_temporal", True, "cv_align"),
-            "siglip_temporal_cvalign": ("siglip_temporal", True, "cv_align")
+            "siglip_temporal_cvalign": ("siglip_temporal", True, "cv_align"),
+            "caption_temporal_ccma": ("caption_temporal", True, "ccma"),
+            "siglip_temporal_ccma": ("siglip_temporal", True, "ccma")
         }
 
         if method == "all":

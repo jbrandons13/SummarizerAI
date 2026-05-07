@@ -1,3 +1,4 @@
+import sys
 import os
 import json
 import pandas as pd
@@ -71,7 +72,18 @@ def compute_strict_viscoher(matches, frame_embeddings):
     return float(np.mean(consecutive_sims))
 
 def main():
-    csv_path = "results/aggregated_20260507_083942/ablation_results.csv"
+    if len(sys.argv) > 1:
+        csv_path = sys.argv[1]
+    else:
+        # Find latest aggregated directory
+        results_dir = Path("results")
+        aggregated_dirs = sorted(results_dir.glob("aggregated_*"))
+        if not aggregated_dirs:
+            print("Error: No aggregated results found.")
+            return
+        csv_path = aggregated_dirs[-1] / "ablation_results.csv"
+        
+    print(f"Processing {csv_path}...")
     df = pd.read_csv(csv_path)
     
     # Remove existing columns if they exist to avoid duplicates
