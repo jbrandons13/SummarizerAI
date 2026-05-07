@@ -21,3 +21,6 @@ node_modules/
 libs/
 frontend/node_modules/
 frontend/dist/
+data/intermediate_OLD_*
+data/*_backup_*
+results_backup_*

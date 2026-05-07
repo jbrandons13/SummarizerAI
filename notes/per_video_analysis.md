@@ -66,27 +66,6 @@
 - Caption DP vs Caption Greedy: 7/10 videos differ.
 - SigLIP Hungarian vs SigLIP Greedy: 1/10 videos differ.
 
-### Scene/Sentence Density Analysis
-
-| video_id | n_scenes | n_sentences | ratio |
-|----------|---------:|------------:|------:|
-| review_1 | 67 | 8 | 8.4 |
-| review_2 | 100 | 6 | 16.7 |
-| review_3 | 224 | 6 | 37.3 |
-| review_4 | 156 | 3 | 52.0 |
-| review_5 | 65 | 7 | 9.3 |
-| review_6 | 103 | 5 | 20.6 |
-| review_7 | 168 | 6 | 28.0 |
-| review_8 | 182 | 8 | 22.8 |
-| review_9 | 144 | 8 | 18.0 |
-| review_10 | 249 | 6 | 41.5 |
-
-**Average Ratio:** 25.5:1
-
 ### Outlier Case Study: review_7 SigLIP DP
 
-In `review_7` (Xiaomi 17 Pro Max), we observe a rare case where DP significantly degrades temporal accuracy for the SigLIP track (0.667 → 0.333) while improving it for the Caption track (0.333 → 0.667). Furthermore, the LLM-generated summary for this video contains several hallucinations (e.g., "second display on the back," "custom controller case") that are not present in the original transcript.
-
-We do not have a definitive explanation for review_7's anomalous DP behavior. Hypotheses include: scene density, embedding signal quality, or interaction with hallucinated summary content. Further investigation is left for future work. We hypothesize that DP, by optimizing for global similarity and smoothness, may have selected temporally distant scenes that locally maximize the sequence-level objective at the cost of temporal alignment. We do not verify this claim by inspecting individual scene matches; this is left for future qualitative analysis.
-
-Despite the drop in temporal accuracy, we observe that Visual Coherence also drops for SigLIP DP on review_7 (0.751 → 0.717), whereas it improves for the Caption track (0.731 → 0.903). This confirms that for this specific video, the DP optimization on the SigLIP track failed to find a visually coherent path, possibly due to the noisy interaction between hallucinations and the VLM signal.
+(TBD: Add 1-2 paragraphs here manually after checking stats)

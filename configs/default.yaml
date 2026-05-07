@@ -39,6 +39,8 @@ paths:
   output_dir: data/output
   raw_data_dir: data/raw
 retrieval:
+  cv_align_k_max: 3
+  cv_align_lambda: 0.1
   dp_backward_penalty: 0.5
   dp_jump_penalty: 0.01
   dp_reuse_bonus: 0.01

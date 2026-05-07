@@ -282,7 +282,6 @@ class RetrievalBackend(ABC):
         reuse_bonus: float = 0.3,
         backward_penalty: float = 0.5,
     ) -> List[int]:
-        print(f"DEBUG: DP called! jp={jump_penalty}, rb={reuse_bonus}, bp={backward_penalty}, sim shape={sim_matrix.shape}")
         """
         Viterbi-style DP for sentence-to-scene assignment with transition costs.
         """
@@ -316,6 +315,135 @@ class RetrievalBackend(ABC):
         for i in range(N - 2, -1, -1):
             assignment[i] = int(backptr[i + 1][assignment[i + 1]])
 
+        return assignment
+
+    def cv_align_sequence(
+        self,
+        sim_matrix: np.ndarray,
+        scenes: List[KeyframeScene],
+        video_duration: float,
+        jump_penalty: float = 0.01,
+        reuse_bonus: float = 0.01,
+        backward_penalty: float = 0.5,
+        k_max: int = 3,
+        lam: float = 0.1,
+    ) -> List[int]:
+        """
+        Constrained Viterbi Alignment (CV-Align).
+        
+        Augments vanilla DP with a consecutive-reuse counter as part of state.
+        Hard cap K_max on consecutive same-scene assignments.
+        Soft penalty lambda grows with reuse count.
+        
+        State: (sentence i, scene j, reuse_count r) where r in [0, k_max - 1].
+        
+        Args:
+            sim_matrix: (N, M) numpy array of similarity scores
+            scenes: list of KeyframeScene objects (for temporal info)
+            video_duration: total video length in seconds
+            jump_penalty: cost coefficient for forward/backward jumps (jp)
+            reuse_bonus: bonus for staying on same scene (rb)
+            backward_penalty: additional cost for backward jumps (bp)
+            k_max: hard cap on consecutive reuse (must be >= 1)
+            lam: soft penalty multiplier for reuse count
+        
+        Returns:
+            List[int] of length N, where each entry is the assigned scene index.
+        """
+        N, M = sim_matrix.shape
+        sim_matrix = np.nan_to_num(sim_matrix, nan=0.0, posinf=1.0, neginf=-1e9)
+
+        if N == 1:
+            return [int(np.argmax(sim_matrix[0]))]
+        
+        if k_max < 1:
+            raise ValueError(f"k_max must be >= 1, got {k_max}")
+
+        scene_time = np.array([s.keyframe_timestamp for s in scenes])
+        
+        # DP table: shape (N, M, K_max)
+        # DP[i][j][r] = max score reaching state (i, j, r)
+        dp = np.full((N, M, k_max), -np.inf)
+        
+        # Backpointers: store (prev_j, prev_r) for each state
+        bp_j = np.full((N, M, k_max), -1, dtype=int)
+        bp_r = np.full((N, M, k_max), -1, dtype=int)
+        
+        # Initialization: i = 0, only r = 0 is valid
+        dp[0, :, 0] = sim_matrix[0]
+        # All other r values for i = 0 remain -inf
+        
+        # Fill DP
+        for i in range(1, N):
+            valid_r_max = min(i + 1, k_max)
+            valid_r_prev_max = min(i, k_max)
+            
+            for j in range(M):  # current scene
+                for r in range(valid_r_max):  # current reuse count
+                    # Find best (j', r') -> (j, r) transition
+                    best_score = -np.inf
+                    best_j_prev = -1
+                    best_r_prev = -1
+                    
+                    if r > 0:
+                        # Must be a stay transition: j_prev == j, r_prev == r - 1
+                        j_prev = j
+                        r_prev = r - 1
+                        if dp[i-1, j_prev, r_prev] > -np.inf:
+                            cost = -reuse_bonus + lam * r_prev
+                            best_score = dp[i-1, j_prev, r_prev] - cost
+                            best_j_prev = j_prev
+                            best_r_prev = r_prev
+                    else:
+                        # Must be a jump transition: j_prev != j, r_prev can be anything
+                        for j_prev in range(M):
+                            if j_prev == j:
+                                continue
+                            dt = (scene_time[j] - scene_time[j_prev]) / max(video_duration, 1e-6)
+                            if dt >= 0:
+                                cost = jump_penalty * dt
+                            else:
+                                cost = jump_penalty * abs(dt) + backward_penalty
+                                
+                            for r_prev in range(valid_r_prev_max):
+                                if dp[i-1, j_prev, r_prev] > -np.inf:
+                                    score = dp[i-1, j_prev, r_prev] - cost
+                                    if score > best_score:
+                                        best_score = score
+                                        best_j_prev = j_prev
+                                        best_r_prev = r_prev
+                    
+                    if best_score > -np.inf:
+                        dp[i, j, r] = sim_matrix[i, j] + best_score
+                        bp_j[i, j, r] = best_j_prev
+                        bp_r[i, j, r] = best_r_prev
+        
+        # Find best terminal state at i = N-1
+        flat_idx = np.argmax(dp[N-1])
+        final_j, final_r = np.unravel_index(flat_idx, (M, k_max))
+        
+        # Backtrack
+        assignment = [0] * N
+        assignment[N-1] = int(final_j)
+        cur_j, cur_r = int(final_j), int(final_r)
+        
+        for i in range(N-1, 0, -1):
+            prev_j = bp_j[i, cur_j, cur_r]
+            prev_r = bp_r[i, cur_j, cur_r]
+            assignment[i-1] = int(prev_j)
+            cur_j, cur_r = int(prev_j), int(prev_r)
+        
+        # Verify constraint satisfaction (sanity check)
+        max_consec = 1
+        cur_consec = 1
+        for i in range(1, N):
+            if assignment[i] == assignment[i-1]:
+                cur_consec += 1
+                max_consec = max(max_consec, cur_consec)
+            else:
+                cur_consec = 1
+        assert max_consec <= k_max, f"CV-Align constraint violated: max_consec={max_consec}, k_max={k_max}"
+        
         return assignment
 
     def compute_path_score(self, sim_matrix, assignment, transition_matrix=None):
@@ -495,6 +623,18 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
             reuse_b = ret_cfg.get("dp_reuse_bonus", 0.3)
             back_p = ret_cfg.get("dp_backward_penalty", 0.5)
             assignment = self.dp_sequence_align(sim_matrix, manifest.scenes, video_dur, jump_penalty=jump_p, reuse_bonus=reuse_b, backward_penalty=back_p)
+        elif matching_algo == "cv_align":
+            video_dur = max(s.end_seconds for s in manifest.scenes)
+            jump_p = ret_cfg.get("dp_jump_penalty", 0.01)
+            reuse_b = ret_cfg.get("dp_reuse_bonus", 0.01)
+            back_p = ret_cfg.get("dp_backward_penalty", 0.5)
+            k_max = ret_cfg.get("cv_align_k_max", 3)
+            lam = ret_cfg.get("cv_align_lambda", 0.1)
+            assignment = self.cv_align_sequence(
+                sim_matrix, manifest.scenes, video_dur,
+                jump_penalty=jump_p, reuse_bonus=reuse_b, backward_penalty=back_p,
+                k_max=k_max, lam=lam
+            )
         else:
             assignment = self.greedy_assign(sim_matrix)
 
@@ -648,6 +788,18 @@ class CaptionCosineRetrieval(RetrievalBackend):
             reuse_b = ret_cfg.get("dp_reuse_bonus", 0.3)
             back_p = ret_cfg.get("dp_backward_penalty", 0.5)
             assignment = self.dp_sequence_align(sim_matrix, manifest.scenes, video_dur, jump_penalty=jump_p, reuse_bonus=reuse_b, backward_penalty=back_p)
+        elif matching_algo == "cv_align":
+            video_dur = max(s.end_seconds for s in manifest.scenes)
+            jump_p = ret_cfg.get("dp_jump_penalty", 0.01)
+            reuse_b = ret_cfg.get("dp_reuse_bonus", 0.01)
+            back_p = ret_cfg.get("dp_backward_penalty", 0.5)
+            k_max = ret_cfg.get("cv_align_k_max", 3)
+            lam = ret_cfg.get("cv_align_lambda", 0.1)
+            assignment = self.cv_align_sequence(
+                sim_matrix, manifest.scenes, video_dur,
+                jump_penalty=jump_p, reuse_bonus=reuse_b, backward_penalty=back_p,
+                k_max=k_max, lam=lam
+            )
         else:
             assignment = self.greedy_assign(sim_matrix)
 
@@ -706,7 +858,9 @@ class Phase4Retrieval:
             "siglip_direct": ("siglip_temporal", False, "greedy"),
             "siglip_temporal": ("siglip_temporal", True, "greedy"),
             "siglip_temporal_hungarian": ("siglip_temporal", True, "hungarian"),
-            "siglip_temporal_dp": ("siglip_temporal", True, "dp")
+            "siglip_temporal_dp": ("siglip_temporal", True, "dp"),
+            "caption_temporal_cvalign": ("caption_temporal", True, "cv_align"),
+            "siglip_temporal_cvalign": ("siglip_temporal", True, "cv_align")
         }
 
         if method == "all":
