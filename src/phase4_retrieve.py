@@ -453,8 +453,8 @@ class RetrievalBackend(ABC):
         video_duration: float,
         c_max: int = 3,
         reuse_penalty: float = 0.2,
-        forward_jump_penalty: float = 0.1,
-        backward_jump_penalty: float = 2.0,
+        jump_penalty: float = 0.01,
+        backward_penalty: float = 0.5,
     ) -> List[int]:
         """
         Capacity-Constrained Monotonic Alignment (CCMA).
@@ -494,9 +494,9 @@ class RetrievalBackend(ABC):
                     
                     dt = (scene_time[j] - scene_time[j_prev]) / max(video_duration, 1e-6)
                     if dt >= 0:
-                        cost = forward_jump_penalty * dt
+                        cost = jump_penalty * dt
                     else:
-                        cost = backward_jump_penalty * abs(dt)
+                        cost = jump_penalty * abs(dt) + backward_penalty
                         
                     score = prev_best_c[j_prev] - cost
                     if score > best_score:
@@ -530,6 +530,8 @@ class RetrievalBackend(ABC):
             cur_j, cur_c = int(prev_j), int(prev_c)
             
         return assignment
+
+
 
     def compute_path_score(self, sim_matrix, assignment, transition_matrix=None):
         """Helper for sanity checks."""
@@ -724,13 +726,14 @@ class SigLIP2DirectRetrieval(RetrievalBackend):
             video_dur = max(s.end_seconds for s in manifest.scenes)
             c_max = ret_cfg.get("ccma_c_max", 3)
             reuse_p = ret_cfg.get("ccma_reuse_penalty", 0.2)
-            fwd_p = ret_cfg.get("ccma_forward_jump_penalty", 0.1)
-            bwd_p = ret_cfg.get("ccma_backward_jump_penalty", 2.0)
+            jump_p = ret_cfg.get("dp_jump_penalty", 0.01)  # share with DP
+            back_p = ret_cfg.get("dp_backward_penalty", 0.5)  # share with DP
             assignment = self.ccma_align_sequence(
                 sim_matrix, manifest.scenes, video_dur,
                 c_max=c_max, reuse_penalty=reuse_p, 
-                forward_jump_penalty=fwd_p, backward_jump_penalty=bwd_p
+                jump_penalty=jump_p, backward_penalty=back_p
             )
+
         else:
             assignment = self.greedy_assign(sim_matrix)
 
@@ -900,13 +903,14 @@ class CaptionCosineRetrieval(RetrievalBackend):
             video_dur = max(s.end_seconds for s in manifest.scenes)
             c_max = ret_cfg.get("ccma_c_max", 3)
             reuse_p = ret_cfg.get("ccma_reuse_penalty", 0.2)
-            fwd_p = ret_cfg.get("ccma_forward_jump_penalty", 0.1)
-            bwd_p = ret_cfg.get("ccma_backward_jump_penalty", 2.0)
+            jump_p = ret_cfg.get("dp_jump_penalty", 0.01)  # share with DP
+            back_p = ret_cfg.get("dp_backward_penalty", 0.5)  # share with DP
             assignment = self.ccma_align_sequence(
                 sim_matrix, manifest.scenes, video_dur,
                 c_max=c_max, reuse_penalty=reuse_p, 
-                forward_jump_penalty=fwd_p, backward_jump_penalty=bwd_p
+                jump_penalty=jump_p, backward_penalty=back_p
             )
+
         else:
             assignment = self.greedy_assign(sim_matrix)
 
@@ -969,7 +973,8 @@ class Phase4Retrieval:
             "caption_temporal_cvalign": ("caption_temporal", True, "cv_align"),
             "siglip_temporal_cvalign": ("siglip_temporal", True, "cv_align"),
             "caption_temporal_ccma": ("caption_temporal", True, "ccma"),
-            "siglip_temporal_ccma": ("siglip_temporal", True, "ccma")
+            "siglip_temporal_ccma": ("siglip_temporal", True, "ccma"),
+
         }
 
         if method == "all":

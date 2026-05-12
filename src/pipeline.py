@@ -22,6 +22,20 @@ class VideoSummarizerPipeline:
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
+        
+        # Global Seed Initialization
+        import random
+        import numpy as np
+        import torch
+        SEED = 42
+        random.seed(SEED)
+        np.random.seed(SEED)
+        torch.manual_seed(SEED)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(SEED)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
         self.vram_manager = VRAMManager(
             device_id=config.get("vram", {}).get("device_id", 0),
             limit_gb=config.get("vram", {}).get("limit_gb", 22.0)

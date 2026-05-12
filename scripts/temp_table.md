@@ -1,0 +1,22 @@
+| video_id   | arm                   |   clipscore_mean |   temporal_acc_15s |   scene_diversity |   max_consecutive_reuse |
+|:-----------|:----------------------|-----------------:|-------------------:|------------------:|------------------------:|
+| review_1   | caption_temporal_ccma |         0.57899  |           0.8      |                 1 |                       1 |
+| review_1   | siglip_temporal_ccma  |         0.525634 |           1        |                 1 |                       1 |
+| review_10  | caption_temporal_ccma |         0.604709 |           1        |                 1 |                       1 |
+| review_10  | siglip_temporal_ccma  |         0.581418 |           1        |                 1 |                       1 |
+| review_2   | caption_temporal_ccma |         0.510644 |           1        |                 1 |                       1 |
+| review_2   | siglip_temporal_ccma  |         0.47408  |           0.8      |                 1 |                       1 |
+| review_3   | caption_temporal_ccma |         0.512419 |           1        |                 1 |                       1 |
+| review_3   | siglip_temporal_ccma  |         0.458966 |           1        |                 1 |                       1 |
+| review_4   | caption_temporal_ccma |         0.539647 |           0.666667 |                 1 |                       1 |
+| review_4   | siglip_temporal_ccma  |         0.583938 |           1        |                 1 |                       1 |
+| review_5   | caption_temporal_ccma |         0.575721 |           0.666667 |                 1 |                       1 |
+| review_5   | siglip_temporal_ccma  |         0.610421 |           0.833333 |                 1 |                       1 |
+| review_6   | caption_temporal_ccma |         0.660965 |           0.8      |                 1 |                       1 |
+| review_6   | siglip_temporal_ccma  |         0.642806 |           1        |                 1 |                       1 |
+| review_7   | caption_temporal_ccma |         0.613216 |           0.666667 |                 1 |                       1 |
+| review_7   | siglip_temporal_ccma  |         0.597089 |           0.833333 |                 1 |                       1 |
+| review_8   | caption_temporal_ccma |         0.644147 |           1        |                 1 |                       1 |
+| review_8   | siglip_temporal_ccma  |         0.561447 |           1        |                 1 |                       1 |
+| review_9   | caption_temporal_ccma |         0.533954 |           0.875    |                 1 |                       1 |
+| review_9   | siglip_temporal_ccma  |         0.527685 |           1        |                 1 |                       1 |
