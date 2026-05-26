@@ -1,2 +1,0 @@
-video_id,arm,clipscore_mean,clipscore_std,blipscore_mean,blipscore_std,llm_judge_coherence,llm_judge_consistency,llm_judge_quality,scene_diversity,max_consecutive_reuse,temporal_accuracy_15s
-review_10,investigation_threshold_z_1.00,0.8160693819324175,0.09844227675116306,0.9999785820643107,4.495663841162029e-06,4.0,4.0,3.6666666666666665,0.0,1,1.0
