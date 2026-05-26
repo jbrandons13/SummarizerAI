@@ -85,6 +85,7 @@ class Phase5SegmentMetadata(BaseModel):
     best_frame_timestamp: float = 0.0
     source_time_range: List[float] # [start, end]
     audio_path: str
+    group_audio_duration: float = 0.0
     similarity_score: float
 
 class Phase5Output(BaseModel):

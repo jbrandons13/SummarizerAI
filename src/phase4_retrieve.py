@@ -4,7 +4,8 @@ import json
 import logging
 import random
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Sequence, Protocol, Callable
+from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 import numpy as np
 
@@ -941,7 +942,8 @@ class Phase4Retrieval:
         
     def run(self, video_path: Path, summary: SummaryScript, language: str = "en", method: str = "siglip_temporal", progress_callback: Any = None) -> Dict[str, RetrievalOutput]:
         video_id = video_path.stem
-        output_dir = Path("data/intermediate") / video_id
+        intermediate_root = self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")
+        output_dir = Path(intermediate_root) / video_id
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # 1. Keyframe Extraction
@@ -1034,3 +1036,537 @@ class Phase4Retrieval:
             progress_callback.update(4, "Visual Retrieval", 100, "Phase 4 complete")
                 
         return results
+
+
+# ---------------------------------------------------------------------------
+# Restored from stash@{0} (RetrievalGate & Helpers)
+# ---------------------------------------------------------------------------
+
+
+class TextEncoder(Protocol):
+    """Minimal interface a text encoder must satisfy.
+
+    The implementation is expected to share the same embedding space as the
+    scene encoder used during preprocessing. For SigLIP this means using the
+    SigLIP text tower with the same model id as the image tower that produced
+    the scene embeddings.
+    """
+
+    def encode(self, text: str) -> np.ndarray:  # pragma: no cover - protocol
+        ...
+
+
+@dataclass
+class Sentence:
+    """One narration sentence from Phase 2 output."""
+
+    id: int
+    text: str
+    timestamp_hint: Tuple[float, float]
+
+
+@dataclass
+class Scene:
+    """One scene from source video preprocessing.
+
+    ``embedding`` must be in the same space as the text encoder output and is
+    expected to be L2-normalised. If not normalised, cosine similarity is still
+    computed correctly here but downstream metrics may behave differently.
+    """
+
+    id: int
+    start: float
+    end: float
+    embedding: np.ndarray
+
+
+@dataclass
+class Assignment:
+    """One group of sentences assigned to a single scene or to generation."""
+
+    sentence_ids: List[int]
+    scene_id: int
+    best_similarity: float          # weighted similarity (cosine * temporal_weight)
+    raw_cosine: float               # raw cosine before temporal weighting
+    temporal_weight: float          # the weight applied to the locked scene
+    action: str                     # "retrieve" or "generate"
+    timestamp_hint_merged: Tuple[float, float]
+    # Per-step weighted similarity trail, kept for debugging and threshold tuning.
+    similarity_trail: List[float] = field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _cosine(a: np.ndarray, b: np.ndarray) -> float:
+    """Cosine similarity between two 1-D vectors. Safe against zero vectors."""
+
+    na = float(np.linalg.norm(a))
+    nb = float(np.linalg.norm(b))
+    if na == 0.0 or nb == 0.0:
+        return 0.0
+    return float(np.dot(a, b) / (na * nb))
+
+
+def _cosine_to_all(query: np.ndarray, matrix: np.ndarray) -> np.ndarray:
+    """Cosine similarity of ``query`` against every row of ``matrix``.
+
+    ``matrix`` shape: ``(num_scenes, dim)``. Returns shape ``(num_scenes,)``.
+    """
+
+    q_norm = float(np.linalg.norm(query))
+    if q_norm == 0.0:
+        return np.zeros(matrix.shape[0], dtype=np.float32)
+    row_norms = np.linalg.norm(matrix, axis=1)
+    row_norms = np.where(row_norms == 0.0, 1.0, row_norms)
+    return (matrix @ query) / (row_norms * q_norm)
+
+
+def _stack_scene_embeddings(scenes: Sequence[Scene]) -> np.ndarray:
+    return np.stack([s.embedding for s in scenes], axis=0)
+
+
+def _scene_centers(scenes: Sequence[Scene]) -> np.ndarray:
+    """Time midpoint of each scene in seconds."""
+
+    return np.array([(s.start + s.end) / 2.0 for s in scenes], dtype=np.float32)
+
+
+def _gaussian_temporal_weights(
+    scene_centers: np.ndarray,
+    hint_center: float,
+    sigma: float,
+) -> np.ndarray:
+    """Gaussian weight in [0, 1] for every scene given a hint center time.
+
+    A scene whose centre matches ``hint_center`` gets weight 1.0; scenes that
+    are ``sigma`` seconds away get weight ~0.61; ``2*sigma`` away ~0.14;
+    ``3*sigma`` away ~0.01. The weight never reaches zero, so distant scenes
+    can still be selected if their visual similarity is overwhelmingly strong,
+    but they are heavily suppressed.
+    """
+
+    if sigma <= 0.0:
+        # Degenerate: no temporal prior. Return all-ones.
+        return np.ones_like(scene_centers, dtype=np.float32)
+    delta = scene_centers - float(hint_center)
+    return np.exp(-(delta ** 2) / (2.0 * sigma * sigma)).astype(np.float32)
+
+
+# ---------------------------------------------------------------------------
+# Core: RetrievalGate
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class RetrievalGateConfig:
+    gate_threshold: float = 0.13       # tuned for SigLIP 2 raw cosine + temporal prior
+    extend_epsilon: float = 0.03
+    max_group_size: int = 5
+    join_sep: str = " "
+    temporal_sigma: float = 30.0       # seconds; controls Gaussian decay width
+    enable_temporal_prior: bool = True
+    enable_cascade_verification: bool = False  # SOTA Cascade Gating thesis innovation
+
+
+class RetrievalGate:
+    """Greedy forward-walk grouping with retrieval/generation gating.
+
+    Each candidate group is scored against every scene as
+    ``weighted_sim = cosine(text_emb, scene_emb) * gaussian_weight(scene_time, hint_time)``
+    where ``gaussian_weight`` decays with the distance between the scene's
+    centre time and the centre of the merged ``source_timestamp_hint`` of the
+    current group. The decision gate compares the final weighted similarity
+    of the locked scene to ``gate_threshold``.
+
+    Algorithm summary:
+      i = 0
+      while i < N:
+          form a group starting at i, anchored to the locked scene S_locked
+              S_locked = argmax_scene weighted_sim(encode(text_i), scene_emb,
+                                                  hint_center_i)
+          try to extend the group by sentence i+1, i+2, ...
+              extension is accepted if and only if:
+                  (a) the new best scene for the extended group is still
+                      S_locked, and
+                  (b) weighted similarity to S_locked did not drop by more than
+                      extend_epsilon below the previous similarity
+          on rejection: close the group
+          decision gate on the final group weighted similarity:
+              >= gate_threshold -> action = "retrieve"
+              < gate_threshold  -> action = "generate"
+          i = i + len(group)
+    """
+
+    def __init__(
+        self,
+        text_encoder: TextEncoder,
+        config: Optional[RetrievalGateConfig] = None,
+        vram_manager: Optional[VRAMManager] = None,
+        pipeline_config: Optional[Dict[str, Any]] = None,
+        manifest: Optional[KeyframesManifest] = None,
+    ) -> None:
+        self.encoder = text_encoder
+        self.config = config or RetrievalGateConfig()
+        self.vram_manager = vram_manager
+        self.pipeline_config = pipeline_config
+        self.manifest = manifest
+
+    def run(
+        self,
+        sentences: Sequence[Sentence],
+        scenes: Sequence[Scene],
+    ) -> List[Assignment]:
+        if not sentences:
+            return []
+        if not scenes:
+            raise ValueError("At least one scene is required.")
+
+        scene_matrix = _stack_scene_embeddings(scenes)
+        scene_centers = _scene_centers(scenes)
+        n = len(sentences)
+        assignments: List[Assignment] = []
+
+        i = 0
+        while i < n:
+            assignment = self._build_group(
+                i, sentences, scenes, scene_matrix, scene_centers
+            )
+            assignments.append(assignment)
+            consumed = len(assignment.sentence_ids)
+            # Defensive: must always advance to prevent infinite loops.
+            if consumed < 1:
+                raise RuntimeError(
+                    f"Group at index {i} consumed zero sentences; refusing to loop."
+                )
+            i += consumed
+
+        # Cascade Entity Verification Gate (Qwen-VL-guided validation)
+        if self.config.enable_cascade_verification and self.manifest and self.vram_manager:
+            logger.info("Executing SOTA Cascade Entity Verification Gating using Qwen-VL...")
+            
+            # Identify model name
+            model_name = "Qwen/Qwen2.5-VL-3B-Instruct-AWQ"
+            if self.pipeline_config:
+                model_name = self.pipeline_config.get("models", {}).get("qwen_vl", {}).get("model_name", model_name)
+            
+            def load_qwen():
+                from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
+                if "AWQ" in model_name:
+                    from awq import AutoAWQForCausalLM
+                    model = AutoAWQForCausalLM.from_quantized(model_name, fuse_layers=False, trust_remote_code=True, device_map="auto")
+                else:
+                    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_name, torch_dtype="auto", device_map="auto", trust_remote_code=True)
+                processor = AutoProcessor.from_pretrained(model_name)
+                return model, processor
+
+            model, processor = self.vram_manager.load_model(f"Qwen2.5-VL ({model_name})", load_qwen)
+            
+            from PIL import Image
+            from qwen_vl_utils import process_vision_info
+            import json
+            import re
+            
+            # Map scene_id to manifest scene object
+            scene_map = {sc.id: sc for sc in self.manifest.scenes}
+            
+            for a_idx, assignment in enumerate(assignments):
+                if assignment.action == "retrieve":
+                    scene_obj = scene_map.get(assignment.scene_id)
+                    if not scene_obj:
+                        continue
+                    
+                    img_path = Path("data/intermediate") / self.manifest.video_id / scene_obj.keyframe_path
+                    if not img_path.exists():
+                        # Try fallback path or skip
+                        continue
+                    
+                    # Joined sentence texts for this group
+                    joined_text = " ".join([sentences[sid].text for sid in assignment.sentence_ids])
+                    
+                    # Build verification prompt
+                    prompt = (
+                        f"Target description: '{joined_text}'\n"
+                        "Verify if the key objects, actions, or setting mentioned in the target description are physically present in the image.\n"
+                        "Answer strictly in JSON format: {\"verified\": true} or {\"verified\": false}."
+                    )
+                    
+                    try:
+                        messages = [{"role": "user", "content": [{"type": "image", "image": str(img_path)}, {"type": "text", "text": prompt}]}]
+                        text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                        image_inputs, video_inputs = process_vision_info(messages)
+                        inputs = processor(text=[text], images=image_inputs, videos=video_inputs, padding=True, return_tensors="pt").to("cuda")
+                        
+                        generated_ids = model.generate(**inputs, max_new_tokens=40, do_sample=False, temperature=0.0)
+                        generated_ids_trimmed = [out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
+                        output_text = processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+                        
+                        # Parse JSON verified flag
+                        match = re.search(r"\{.*?\}", output_text, re.DOTALL)
+                        verified = True
+                        if match:
+                            try:
+                                parsed = json.loads(match.group(0))
+                                verified = parsed.get("verified", True)
+                            except:
+                                verified = "true" in output_text.lower()
+                        else:
+                            verified = "true" in output_text.lower()
+                            
+                        if not verified:
+                            logger.info(f"Cascade Gating REJECTED scene {assignment.scene_id} for text '{joined_text}'. Overriding action to 'generate'.")
+                            assignment.action = "generate"
+                        else:
+                            logger.info(f"Cascade Gating APPROVED scene {assignment.scene_id} for text '{joined_text}'.")
+                    except Exception as ex:
+                        logger.error(f"Error in cascade entity verification for assignment {a_idx}: {ex}")
+            
+            # Clean up VRAM
+            self.vram_manager.load_model("None (Cleanup)", lambda: None)
+
+        return assignments
+
+    # ------------------------------------------------------------------
+    # Internal
+    # ------------------------------------------------------------------
+
+    def _hint_center(self, sentences: Sequence[Sentence], ids: Sequence[int]) -> float:
+        """Centre of the merged timestamp hint across the group.
+        
+        Sentences within a group may not be temporally ordered in the source video
+        (LLM summary reorders by narrative/topic), so we take min/max across all
+        sentences in the group rather than assuming first/last bound the range.
+        """
+        starts = [sentences[sid].timestamp_hint[0] for sid in ids]
+        ends = [sentences[sid].timestamp_hint[1] for sid in ids]
+        lo = min(starts)
+        hi = max(ends)
+        return (float(lo) + float(hi)) / 2.0
+
+    def _weighted_sims(
+        self,
+        text_emb: np.ndarray,
+        scene_matrix: np.ndarray,
+        scene_centers: np.ndarray,
+        hint_center: float,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Return (weighted, raw_cosine, weights) for every scene."""
+
+        raw = _cosine_to_all(text_emb, scene_matrix)
+        if self.config.enable_temporal_prior:
+            weights = _gaussian_temporal_weights(
+                scene_centers, hint_center, self.config.temporal_sigma
+            )
+        else:
+            weights = np.ones_like(raw, dtype=np.float32)
+        weighted = raw * weights
+        return weighted, raw, weights
+
+    def _build_group(
+        self,
+        start: int,
+        sentences: Sequence[Sentence],
+        scenes: Sequence[Scene],
+        scene_matrix: np.ndarray,
+        scene_centers: np.ndarray,
+    ) -> Assignment:
+        cfg = self.config
+        sep = cfg.join_sep
+
+        # Seed: group of one sentence, lock to its best (weighted) scene.
+        group_ids: List[int] = [start]
+        joined_text = sentences[start].text
+        joined_emb = self.encoder.encode(joined_text)
+
+        hint_center = self._hint_center(sentences, group_ids)
+        weighted, raw, weights = self._weighted_sims(
+            joined_emb, scene_matrix, scene_centers, hint_center
+        )
+        locked_idx = int(np.argmax(weighted))
+        best_weighted = float(weighted[locked_idx])
+        best_raw = float(raw[locked_idx])
+        best_weight = float(weights[locked_idx])
+        sim_trail: List[float] = [best_weighted]
+
+        # Try to extend.
+        n = len(sentences)
+        while (
+            start + len(group_ids) < n
+            and len(group_ids) < cfg.max_group_size
+        ):
+            next_idx = start + len(group_ids)
+            candidate_text = joined_text + sep + sentences[next_idx].text
+            candidate_emb = self.encoder.encode(candidate_text)
+
+            candidate_ids = group_ids + [next_idx]
+            candidate_hint_center = self._hint_center(sentences, candidate_ids)
+            cand_weighted, cand_raw, cand_weights = self._weighted_sims(
+                candidate_emb, scene_matrix, scene_centers, candidate_hint_center
+            )
+            candidate_best_idx = int(np.argmax(cand_weighted))
+            candidate_locked_weighted = float(cand_weighted[locked_idx])
+
+            # Extension accepted only if:
+            #   - the candidate group still maps best to the locked scene
+            #   - weighted similarity to the locked scene did not drop too far
+            same_scene = candidate_best_idx == locked_idx
+            tolerable_drop = (
+                candidate_locked_weighted >= best_weighted - cfg.extend_epsilon
+            )
+            if not (same_scene and tolerable_drop):
+                break
+
+            group_ids.append(next_idx)
+            joined_text = candidate_text
+            joined_emb = candidate_emb
+            best_weighted = candidate_locked_weighted
+            best_raw = float(cand_raw[locked_idx])
+            best_weight = float(cand_weights[locked_idx])
+            sim_trail.append(best_weighted)
+
+        # Decision gate is on the weighted similarity.
+        action = "retrieve" if best_weighted >= cfg.gate_threshold else "generate"
+
+        # Sentences within a group may not be temporally ordered (LLM reorders).
+        # Take min/max across all sentences to get true bounding range.
+        all_starts = [sentences[sid].timestamp_hint[0] for sid in group_ids]
+        all_ends = [sentences[sid].timestamp_hint[1] for sid in group_ids]
+        hint_start = min(all_starts)
+        hint_end = max(all_ends)
+
+        return Assignment(
+            sentence_ids=group_ids,
+            scene_id=scenes[locked_idx].id,
+            best_similarity=best_weighted,
+            raw_cosine=best_raw,
+            temporal_weight=best_weight,
+            action=action,
+            timestamp_hint_merged=(float(hint_start), float(hint_end)),
+            similarity_trail=sim_trail,
+        )
+
+
+# ---------------------------------------------------------------------------
+# FrameSelector (used by Phase 5 for generation conditioning)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class FrameSelectorConfig:
+    # Strategy for picking a representative frame from the locked scene.
+    # "middle"      -> the frame nearest the midpoint of the merged hint range
+    # "best_clip"   -> the frame with the highest CLIP/SigLIP similarity to the
+    #                  joined sentence text (requires per-frame embeddings)
+    strategy: str = "middle"
+
+
+class FrameSelector:
+    """Pick a representative frame from the locked scene for Phase 5.
+
+    Two strategies are supported. ``"middle"`` is dependency-free and always
+    available. ``"best_clip"`` requires per-frame embeddings and a text encoder;
+    if either is missing, the selector falls back to ``"middle"``.
+
+    The frame chosen here becomes the image-conditioning input for the
+    image-to-video diffusion model in Phase 5.
+    """
+
+    def __init__(
+        self,
+        config: Optional[FrameSelectorConfig] = None,
+        text_encoder: Optional[TextEncoder] = None,
+    ) -> None:
+        self.config = config or FrameSelectorConfig()
+        self.encoder = text_encoder
+
+    def select(
+        self,
+        assignment: Assignment,
+        scene: Scene,
+        frames: Sequence["FrameRef"],
+        joined_sentence_text: Optional[str] = None,
+    ) -> "FrameRef":
+        """Return the chosen frame.
+
+        ``frames`` is the sequence of available frames inside ``scene``, each
+        carrying its timestamp and an optional embedding. The selector narrows
+        to frames inside ``assignment.timestamp_hint_merged`` first; if the
+        narrowed window is empty (hints can lie outside the scene if Phase 2
+        timestamps drift), it falls back to all scene frames.
+        """
+
+        if not frames:
+            raise ValueError(f"Scene {scene.id} has no frames available.")
+
+        lo, hi = assignment.timestamp_hint_merged
+        in_window = [f for f in frames if lo <= f.timestamp <= hi]
+        candidates = in_window if in_window else list(frames)
+
+        strategy = self.config.strategy
+        if strategy == "best_clip":
+            if (
+                self.encoder is not None
+                and joined_sentence_text is not None
+                and all(f.embedding is not None for f in candidates)
+            ):
+                text_emb = self.encoder.encode(joined_sentence_text)
+                frame_matrix = np.stack(
+                    [f.embedding for f in candidates], axis=0  # type: ignore[arg-type]
+                )
+                sims = _cosine_to_all(text_emb, frame_matrix)
+                return candidates[int(np.argmax(sims))]
+            # Fall through to middle if dependencies missing.
+
+        # Default / fallback: middle of window (or middle of all frames).
+        midpoint = (candidates[0].timestamp + candidates[-1].timestamp) / 2.0
+        return min(candidates, key=lambda f: abs(f.timestamp - midpoint))
+
+
+@dataclass
+class FrameRef:
+    """Reference to one frame, optionally with an embedding."""
+
+    timestamp: float
+    path: str  # path on disk or whatever the rest of the pipeline expects
+    embedding: Optional[np.ndarray] = None
+
+
+# ---------------------------------------------------------------------------
+# Convenience: run end-to-end and summarise
+# ---------------------------------------------------------------------------
+
+
+def summarise_assignments(assignments: Sequence[Assignment]) -> dict:
+    """Quick stats useful for smoke tests and threshold tuning."""
+
+    if not assignments:
+        return {"num_groups": 0}
+
+    group_sizes = [len(a.sentence_ids) for a in assignments]
+    weighted_sims = [a.best_similarity for a in assignments]
+    raw_sims = [a.raw_cosine for a in assignments]
+    weights = [a.temporal_weight for a in assignments]
+    actions = [a.action for a in assignments]
+
+    return {
+        "num_groups": len(assignments),
+        "num_sentences": sum(group_sizes),
+        "group_size_min": min(group_sizes),
+        "group_size_max": max(group_sizes),
+        "group_size_mean": sum(group_sizes) / len(group_sizes),
+        "num_singletons": sum(1 for s in group_sizes if s == 1),
+        "num_multi": sum(1 for s in group_sizes if s > 1),
+        "weighted_sim_min": min(weighted_sims),
+        "weighted_sim_max": max(weighted_sims),
+        "weighted_sim_mean": sum(weighted_sims) / len(weighted_sims),
+        "raw_cosine_min": min(raw_sims),
+        "raw_cosine_max": max(raw_sims),
+        "raw_cosine_mean": sum(raw_sims) / len(raw_sims),
+        "temporal_weight_min": min(weights),
+        "temporal_weight_max": max(weights),
+        "temporal_weight_mean": sum(weights) / len(weights),
+        "num_retrieve": sum(1 for a in actions if a == "retrieve"),
+        "num_generate": sum(1 for a in actions if a == "generate"),
+    }

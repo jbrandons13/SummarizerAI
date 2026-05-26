@@ -96,7 +96,7 @@ def test_phase5_assembler(mock_data):
     assert len(output.segments) == 3
     
     # Verify metadata file exists
-    metadata_json = mock_data["output_dir"] / "tiny_video_summary_mock_method_metadata.json"
+    metadata_json = mock_data["output_dir"] / "tiny_video" / "summary_mock_method_metadata.json"
     assert metadata_json.exists()
     
     # Verify video is playable (basic check with ffprobe)

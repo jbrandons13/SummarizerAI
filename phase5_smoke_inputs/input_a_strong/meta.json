@@ -1,0 +1,9 @@
+{
+  "video_id": "review_7",
+  "group_id": 6,
+  "sentence_ids": [
+    6
+  ],
+  "weighted_sim": 0.2048,
+  "action": "retrieve"
+}

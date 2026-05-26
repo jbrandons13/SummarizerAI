@@ -2,7 +2,7 @@ import whisperx
 import torch
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Union
 import json
 
 from src.schemas import TranscriptSchema, Segment, Word
@@ -28,13 +28,14 @@ class TranscriptionPhase:
         self.compute_type = "float16"
         self.batch_size = config.get("batch_size", 16)
 
-    def run(self, video_path: Path, progress_callback: Any = None) -> Path:
+    def run(self, video_path: Path, progress_callback: Any = None, intermediate_dir: Optional[Union[str, Path]] = None) -> Path:
         """
         Execute Phase 1: Audio extraction, transcription, and alignment.
         
         Args:
             video_path: Path to the input video.
             progress_callback: Optional callback for progress updates.
+            intermediate_dir: Optional custom intermediate directory.
             
         Returns:
             Path to the generated transcript.json.
@@ -43,7 +44,8 @@ class TranscriptionPhase:
         video_path = Path(video_path)
         
         # 1. Setup paths
-        intermediate_dir = Path(self.config.get("intermediate_dir", "data/intermediate")) / video_id
+        base_dir = Path(intermediate_dir) if intermediate_dir is not None else Path(self.config.get("intermediate_dir", "data/intermediate"))
+        intermediate_dir = base_dir / video_id
         intermediate_dir.mkdir(parents=True, exist_ok=True)
         
         audio_path = intermediate_dir / "audio.wav"

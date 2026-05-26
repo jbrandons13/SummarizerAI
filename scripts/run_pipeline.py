@@ -37,7 +37,8 @@ def main():
     parser = argparse.ArgumentParser(description="Run the Video Summarizer Pipeline")
     parser.add_argument("video_path", type=str, help="Path to the input video file")
     parser.add_argument("--config", type=str, default="configs/default.yaml", help="Path to config file")
-    parser.add_argument("--method", type=str, default="siglip_direct", choices=["siglip_direct", "caption_cosine", "random"], help="Retrieval method")
+    parser.add_argument("--method", type=str, default="siglip_direct", choices=["siglip_direct", "caption_cosine", "random", "grouping_gate"], help="Retrieval method")
+    parser.add_argument("--phases", type=str, default="1,2,3,4,5", help="Comma-separated list of phases to run (e.g., '1,2,3' or '1,2,3,4,5')")
     
     args = parser.parse_args()
     
@@ -58,12 +59,19 @@ def main():
     try:
         logger.info(f"Starting pipeline for: {video_path}")
         pipeline = VideoSummarizerPipeline(config)
-        output = pipeline.run(video_path, method=args.method)
+        
+        phases = [int(p.strip()) for p in args.phases.split(",") if p.strip().isdigit()]
+        stop_after_phase = max(phases) if phases else 5
+        
+        output = pipeline.run(video_path, method=args.method, stop_after_phase=stop_after_phase)
         
         logger.info("==========================================")
         logger.info("PIPELINE SUCCESSFUL")
-        logger.info(f"Video: {output.output_path}")
-        logger.info(f"Total Duration: {output.total_duration_seconds:.2f}s")
+        if output:
+            logger.info(f"Video: {output.output_path}")
+            logger.info(f"Total Duration: {output.total_duration_seconds:.2f}s")
+        else:
+            logger.info(f"Pipeline stopped early after Phase {stop_after_phase}")
         logger.info("==========================================")
         
     except Exception as e:

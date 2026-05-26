@@ -70,3 +70,30 @@ tts:
 vram:
   device_id: 0
   limit_gb: 22.0
+
+phase4:
+  gate_threshold: 0.12
+  extend_epsilon: 0.03
+  max_group_size: 5
+  join_sep: " "
+  temporal_sigma: 30.0
+  enable_temporal_prior: true
+  enable_cascade_verification: true
+
+evaluation:
+  clipscore:
+    model: "openai/clip-vit-large-patch14"
+    rescale_factor: 2.5
+  judge_visual:
+    model: "Qwen/Qwen2.5-VL-7B-Instruct"
+    dtype: "bfloat16"
+    num_keyframes: 6
+    num_samples_per_video: 3
+    max_retries: 1
+  judge_narrative:
+    model: "Qwen/Qwen2.5-14B-Instruct-AWQ"
+    max_transcript_tokens: 28000
+    max_retries: 1
+  summary_fidelity:
+    bertscore_model: "roberta-large"
+    use_stemmer: true

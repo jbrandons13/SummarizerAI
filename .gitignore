@@ -24,3 +24,10 @@ frontend/dist/
 data/intermediate_OLD_*
 data/*_backup_*
 results_backup_*
+
+
+# Quarantine — contaminated artifacts (do not commit)
+archive/contaminated/
+data/output_old/
+\~/
+~/

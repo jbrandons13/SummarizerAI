@@ -1,0 +1,11 @@
+video_id,dim1_score,dim2_score,dim3_score,rationale
+review_1,4,5,4,Provides a concise overview of the new earbuds; clear and well-structured; omits some details like the comparison to AirPods and the USB-C port on the case.
+review_2,4,5,4,Provides a concise overview of the laptop's features and performance; clear and logically structured; accurately reflects the main points but omits some details like the swap memory usage and specific performance benchmarks.
+review_3,4,4,3,Provides a concise overview of the topic; flows logically; omits specific details like the Vizio acquisition and the technical specifications of the Sceptre TV
+review_4,4,5,3,Provides key features of the Flux keyboard; clear and logically structured; omits some important details like the customizability of the display and the availability of accessories.
+review_5,4,5,4,Provides a concise overview of the device's features; clear and logically structured; omits some specific details and user experience reflections.
+review_6,3,4,3,The summary lacks detailed information on the user experience and quirks; it is clear and logically structured; it omits key details such as the initial Windows setup and the mixed user experience.
+review_7,4,5,4,The summary covers key points but lacks some details; the summary is logically structured and easy to follow; the summary accurately reflects the main points but omits some unique features like the silicon carbon battery.
+review_8,4,4,3,Provides a comprehensive overview of the Oppo phone's features; logically structured; omits some key details like the comparison of battery performance and the software ecosystem differences.
+review_9,4,5,4,"The summary covers key points but lacks specific details like the exact performance improvements; the summary is clear and logically structured; the summary omits some details from the source, such as the RAM crisis and the five modes of the Yoga 7A."
+review_10,4,5,4,The summary covers key features but lacks specific details like the touchpad issues and the RAM crisis; The summary is logically structured and easy to follow; The summary omits some details and slightly misrepresents the pricing comparison between models.

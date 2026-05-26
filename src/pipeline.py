@@ -57,7 +57,7 @@ class VideoSummarizerPipeline:
         # TTS Backend selection is now handled within Phase3Voiceover
         pass
 
-    def run(self, video_path: Path, method: str = "siglip_direct", force: bool = False, progress_callback: Any = None, original_filename: str = None) -> Phase5Output:
+    def run(self, video_path: Path, method: str = "siglip_direct", force: bool = False, progress_callback: Any = None, original_filename: str = None, stop_after_phase: int = 5) -> Phase5Output:
         """
         Run the full pipeline from raw video to final summary.
         """
@@ -90,7 +90,7 @@ class VideoSummarizerPipeline:
                     progress_callback.update(1, "Transcription", 100, "Loaded existing transcript")
             else:
                 p1 = TranscriptionPhase(self.vram_manager, self.config.get("models", {}).get("whisper", {}))
-                transcript_path = p1.run(video_path, progress_callback=progress_callback)
+                transcript_path = p1.run(video_path, progress_callback=progress_callback, intermediate_dir=intermediate_dir.parent)
             self.vram_manager.log_peak_usage("Phase 1: Transcription")
             
             # Phase 2: Summarization
@@ -125,32 +125,141 @@ class VideoSummarizerPipeline:
                 audio_manifest_path = p3.run(summary_path, progress_callback=progress_callback)
             self.vram_manager.log_peak_usage("Phase 3: Voiceover")
             
-            # Phase 4: Retrieval
-            retrieval_models = {
-                "random": "None (Deterministic Random)",
-                "siglip_direct": "SigLIP 2 (Semantic Only)",
-                "siglip_temporal": "SigLIP 2 + Temporal Guidance",
-                "caption_cosine": "Qwen2.5-VL + Cosine (Semantic Only)",
-                "caption_temporal": "Qwen2.5-VL + Cosine + Temporal Guidance"
-            }
-            active_retrieval = retrieval_models.get(method, method)
-            logger.info(f"--- Phase 4: Retrieval (Model: {active_retrieval}) ---")
-            if progress_callback:
-                progress_callback.update(4, "Visual Retrieval", 0, "Extracting and matching keyframes")
-            keyframes_manifest_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / "keyframes_manifest.json"
-            retrieval_output_path = Path(self.config.get("paths", {}).get("intermediate_dir", "data/intermediate")) / video_id / f"scene_matches_{method}.json"
+            if stop_after_phase <= 3:
+                logger.info(f"Pipeline configured to stop after Phase {stop_after_phase}. Exiting early.")
+                return None
+
             
-            if retrieval_output_path.exists() and keyframes_manifest_path.exists():
-                logger.info(f"Skipping Phase 4, using existing retrieval results: {retrieval_output_path}")
+            # Phase 4: Retrieval (Grouping-based Retrieval Gate)
+            logger.info("--- Phase 4: Retrieval (Grouping-based Retrieval Gate) ---")
+            if progress_callback:
+                progress_callback.update(4, "Visual Retrieval", 0, "Initializing retrieval engine")
+
+            keyframes_manifest_path = intermediate_dir / "keyframes_manifest.json"
+            assignments_path = intermediate_dir / "p4_assignments.json"
+
+            if assignments_path.exists() and keyframes_manifest_path.exists():
+                logger.info(f"Skipping Phase 4, using existing retrieval assignments: {assignments_path}")
                 if progress_callback:
-                    progress_callback.update(4, "Visual Retrieval", 100, "Loaded existing retrieval results")
+                    progress_callback.update(4, "Visual Retrieval", 100, "Loaded existing retrieval assignments")
             else:
                 from src.utils.io import load_json_as_model
-                from src.schemas import SummaryScript
+                from src.schemas import SummaryScript, KeyframesManifest
+                from src.models.siglip import SigLIPEncoder
+                from src.phase4_retrieve import (
+                    RetrievalGate, RetrievalGateConfig, 
+                    Sentence as P4Sentence, Scene as P4Scene, KeyframeExtractor
+                )
+
+                # 1. Ensure Keyframes/Scenes are extracted
+                if keyframes_manifest_path.exists():
+                    manifest = load_json_as_model(keyframes_manifest_path, KeyframesManifest)
+                else:
+                    extractor = KeyframeExtractor()
+                    manifest = extractor.extract(video_path, intermediate_dir, progress_callback=progress_callback)
+
+                # 2. Setup SigLIP Encoder
+                siglip_model = self.config.get("models", {}).get("siglip", {}).get("model_name", "google/siglip2-so400m-patch16-naflex")
+                siglip = SigLIPEncoder(self.vram_manager, siglip_model)
+                
+                # 3. Compute/Load scene embeddings
+                frame_embeddings = siglip.embed_scenes(video_id, manifest, progress_callback=progress_callback, intermediate_dir=intermediate_dir.parent)
+                
+                # 4. Prepare data for RetrievalGate
                 summary = load_json_as_model(summary_path, SummaryScript)
-                p4 = Phase4Retrieval(self.config, self.vram_manager)
-                p4.run(video_path, summary, method=method, progress_callback=progress_callback)
-            self.vram_manager.log_peak_usage(f"Phase 4: Retrieval ({method})")
+                
+                # Mean-pool frame embeddings to get scene embeddings for the gate
+                import numpy as np
+                p4_scenes = []
+                for sc in manifest.scenes:
+                    embs = [frame_embeddings[(sc.id, ts)] for ts in sc.multi_frame_timestamps]
+                    if embs:
+                        scene_emb = np.mean(embs, axis=0)
+                        # Normalize pooled embedding
+                        norm = np.linalg.norm(scene_emb)
+                        if norm > 0:
+                            scene_emb = scene_emb / norm
+                    else:
+                        scene_emb = np.zeros(siglip.get_embedding_dim())
+
+                    p4_scenes.append(P4Scene(
+                        id=sc.id,
+                        start=sc.start_seconds,
+                        end=sc.end_seconds,
+                        embedding=scene_emb
+                    ))
+
+                p4_sentences = [
+                    P4Sentence(
+                        id=s.id,
+                        text=s.text,
+                        timestamp_hint=(s.source_timestamp_hint[0], s.source_timestamp_hint[1])
+                    )
+                    for s in summary.sentences
+                ]
+
+                # 5. Run Gate
+                gate_cfg_vals = self.config.get("phase4", {})
+                gate = RetrievalGate(
+                    text_encoder=siglip,
+                    config=RetrievalGateConfig(
+                        gate_threshold=gate_cfg_vals.get("gate_threshold", 0.12),
+                        extend_epsilon=gate_cfg_vals.get("extend_epsilon", 0.03),
+                        max_group_size=gate_cfg_vals.get("max_group_size", 5),
+                        join_sep=gate_cfg_vals.get("join_sep", " "),
+                        temporal_sigma=gate_cfg_vals.get("temporal_sigma", 30.0),
+                        enable_temporal_prior=gate_cfg_vals.get("enable_temporal_prior", True),
+                        enable_cascade_verification=gate_cfg_vals.get("enable_cascade_verification", False),
+                    ),
+                    vram_manager=self.vram_manager,
+                    pipeline_config=self.config,
+                    manifest=manifest,
+                )
+                assignments = gate.run(p4_sentences, p4_scenes)
+                
+                from src.phase4_retrieve import summarise_assignments
+                logger.info("=== Retrieval Gating Output ===")
+                for a in assignments:
+                    logger.info(
+                        f"  group sents={a.sentence_ids} "
+                        f"scene={a.scene_id} "
+                        f"weighted={a.best_similarity:.3f} "
+                        f"raw={a.raw_cosine:.3f} "
+                        f"weight={a.temporal_weight:.3f} "
+                        f"action={a.action} "
+                        f"hint={a.timestamp_hint_merged} "
+                    )
+                logger.info(f"Summary: {summarise_assignments(assignments)}")
+                
+                # Persist assignments for downstream use
+                import json
+                from dataclasses import asdict
+                with open(assignments_path, "w") as f:
+                    json.dump([asdict(a) for a in assignments], f, indent=2)
+
+                # Unload SigLIP encoder to free up VRAM
+                self.vram_manager.unload_current_model()
+
+            self.vram_manager.log_peak_usage("Phase 4: Retrieval (Grouping)")
+            
+            if stop_after_phase <= 4:
+                logger.info(f"Pipeline configured to stop after Phase {stop_after_phase}. Exiting early.")
+                return None
+            
+            # Phase 5: LTX Clip Generation
+            if progress_callback:
+                progress_callback.update(5, "Generation", 0, "Generating video clips with LTX-Video")
+            
+            logger.info("--- Phase 5: LTX Clip Generation ---")
+            from src.phase5_generate import run_phase5_generate
+            run_phase5_generate(
+                video_id=video_id,
+                config=self.config,
+                vram_manager=self.vram_manager,
+                rebuild_prompts=False,
+                rebuild_clips=False
+            )
+            self.vram_manager.log_peak_usage("Phase 5: LTX Clip Generation")
             
             # Phase 5: Assembly
             if progress_callback:
@@ -162,7 +271,7 @@ class VideoSummarizerPipeline:
                 video_path, 
                 audio_manifest_path, 
                 keyframes_manifest_path, 
-                retrieval_output_path,
+                assignments_path,
                 progress_callback=progress_callback,
                 original_filename=original_filename
             )

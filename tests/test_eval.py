@@ -47,7 +47,25 @@ def test_llm_judge_mock(mock_generate):
     assert "reasoning" in result
 
 @pytest.mark.skipif(not os.path.exists("tests/fixtures/tiny_video.mp4"), reason="Fixtures missing")
-def test_eval_end_to_end_mocked():
+@patch("src.models.llm_wrapper.GroqBackend.generate")
+def test_eval_end_to_end_mocked(mock_generate):
+    # Mock response for Groq LLM backend
+    mock_generate.return_value = json.dumps({
+        "video_id": "tiny_video",
+        "target_duration": 60,
+        "style": "informative",
+        "backend_used": "groq",
+        "sentences": [
+            {
+                "id": 0,
+                "text": "The final joke about balloons is very funny.",
+                "estimated_duration_seconds": 5.0,
+                "source_timestamp_hint": [0.0, 5.0],
+                "keywords": ["balloons", "funny joke"]
+            }
+        ]
+    })
+    
     # Mock judge and metrics to avoid long runs/costs
     with patch("src.eval.llm_judge.LLMJudge.evaluate_video") as mock_judge, \
          patch("src.eval.llm_judge.LLMJudge.__init__", return_value=None), \

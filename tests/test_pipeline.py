@@ -42,17 +42,17 @@ def test_full_pipeline_integration(tmp_path):
         pytest.skip("GROQ_API_KEY not found in environment. Skipping integration test.")
 
     pipeline = VideoSummarizerPipeline(config)
-    output = pipeline.run(video_path, method="siglip_direct")
+    output = pipeline.run(video_path, method="grouping_gate")
     
     # 3. Assertions
     assert isinstance(output, Phase5Output)
     assert Path(output.output_path).exists()
     assert output.video_id == "tiny_video"
-    assert output.method == "siglip_direct"
+    assert output.method == "grouping_gate"
     assert output.total_duration_seconds > 0
     
     # Verify metadata
-    metadata_json = Path(config["output_dir"]) / "tiny_video_summary_siglip_direct_metadata.json"
+    metadata_json = Path(config["output_dir"]) / "tiny_video" / "summary_grouping_gate_metadata.json"
     assert metadata_json.exists()
     
     print(f"Integration test passed. Summary video at: {output.output_path}")
