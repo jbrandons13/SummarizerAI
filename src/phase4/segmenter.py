@@ -170,22 +170,30 @@ def run_segmenter(
     script_path = video_dir / "summary_script.json"
     audio_manifest_path = video_dir / "audio_manifest.json"
     
-    if not script_path.exists() or not audio_manifest_path.exists():
+    if not script_path.exists():
         raise FileNotFoundError(f"Missing input files in {video_dir}")
         
     with open(script_path, "r", encoding="utf-8") as f:
         script_data = json.load(f)
         
-    with open(audio_manifest_path, "r", encoding="utf-8") as f:
-        audio_data = json.load(f)
-        
     audio_lookup = {}
-    for seg in audio_data.get("sentences", []):
-        seg_id = str(seg["id"])
-        audio_lookup[seg_id] = {
-            "duration_sec": seg["duration_seconds"],
-            "audio_path": str(video_dir / seg["audio_path"] if not Path(seg["audio_path"]).is_absolute() else seg["audio_path"])
-        }
+    if audio_manifest_path.exists():
+        with open(audio_manifest_path, "r", encoding="utf-8") as f:
+            audio_data = json.load(f)
+            
+        for seg in audio_data.get("sentences", []):
+            seg_id = str(seg["id"])
+            audio_lookup[seg_id] = {
+                "duration_sec": seg["duration_seconds"],
+                "audio_path": str(video_dir / seg["audio_path"] if not Path(seg["audio_path"]).is_absolute() else seg["audio_path"])
+            }
+    else:
+        for seg in script_data.get("sentences", []):
+            seg_id = str(seg["id"])
+            audio_lookup[seg_id] = {
+                "duration_sec": seg.get("estimated_duration_seconds", 5.0),
+                "audio_path": ""
+            }
         
     segments = script_data.get("sentences", [])
     
@@ -198,6 +206,8 @@ def run_segmenter(
     
     def process_and_save_audio(audio_paths: List[str], shot_id: str, start_ratio: float = 0.0, end_ratio: float = 1.0) -> str:
         out_path = audio_out_dir / f"{shot_id}.wav"
+        if not audio_paths or not all(audio_paths):
+            return ""
         
         # Merge case
         if len(audio_paths) > 1:

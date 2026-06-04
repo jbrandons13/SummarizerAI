@@ -25,7 +25,7 @@ RULES:
 2. HOOK: Start with a power statement. Never say "Starting video" or "In this clip".
 3. TONE: {style_description}
 4. SPELL NUMBERS: Say "seven minutes" not "7m".
-5. LENGTH: Aim for UP TO {target_duration} seconds, but PRIORITIZE distinct, non-repetitive content over reaching this target. If the source does not contain enough distinct ideas, produce FEWER sentences. It is better to be shorter than to repeat or pad.
+5. LENGTH: You MUST generate EXACTLY 8 sentences. No more, no less. Ensure the content is structured to fit perfectly into 8 distinct sentences.
 6. CONTENT ONLY: Summarize the MAIN TOPIC and FACTUAL CLAIMS of the video. Do NOT summarize vocabulary definitions, word explanations, pronunciation guides, or language teaching segments. Focus on WHAT the video is about, not HOW it teaches.
 7. NO REPETITION: Each sentence must cover a DIFFERENT aspect or subtopic. Never rephrase the same point in multiple sentences.
 7a. GRANULARITY: Aim for 7-10 seconds per sentence, each covering ONE specific concept, claim, or detail (do not pack multiple ideas into one sentence). The number of sentences MUST match the amount of distinct content in the source, NOT a fixed target. NEVER repeat or rephrase a point you have already made in order to reach the target length.

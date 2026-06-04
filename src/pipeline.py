@@ -106,6 +106,11 @@ class VideoSummarizerPipeline:
                 summary_path = p2.run(transcript_path, target_duration=self.config.get("summarization", {}).get("max_output_duration_seconds", 60), progress_callback=progress_callback)
             self.vram_manager.log_peak_usage("Phase 2: Summarization")
             
+            if stop_after_phase < 3:
+                duration = time.time() - start_time
+                logger.info(f"Pipeline complete (stopped early) in {duration:.2f} seconds.")
+                return summary_path
+
             # Phase 3: Voiceover
             tts_backend_name = self.config.get("tts", {}).get("backend", "Unknown")
             logger.info(f"--- Phase 3: Voiceover (Backend: {tts_backend_name}) ---")
