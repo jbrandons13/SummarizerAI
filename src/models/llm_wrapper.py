@@ -61,7 +61,8 @@ class LocalBackend(LLMBackend):
         self.model = model
         self.tokenizer = tokenizer
 
-    def generate(self, system_prompt: str, user_prompt: str, max_new_tokens: int = 4096) -> str:
+    def generate(self, system_prompt: str, user_prompt: str, max_new_tokens: int = 4096,
+                 repetition_penalty: float = 1.0) -> str:
         if self.model is None:
             self._load_model()
         
@@ -81,7 +82,8 @@ class LocalBackend(LLMBackend):
             **model_inputs,
             max_new_tokens=max_new_tokens,
             temperature=0.0,
-            do_sample=False
+            do_sample=False,
+            repetition_penalty=repetition_penalty
         )
         
         # Extract only the new tokens
@@ -108,7 +110,10 @@ class GroqBackend(LLMBackend):
         self.model_name = model_name
         self.local_fallback = local_fallback
 
-    def generate(self, system_prompt: str, user_prompt: str, max_new_tokens: int = 4096) -> str:
+    def generate(self, system_prompt: str, user_prompt: str, max_new_tokens: int = 4096,
+                 repetition_penalty: float = 1.0) -> str:
+        # NOTE: Groq's OpenAI-style API has no `repetition_penalty`; the arg is accepted
+        # for a uniform backend interface and intentionally not forwarded to the API.
         retries = 3
         backoff = 2
         for i in range(retries):
@@ -133,7 +138,7 @@ class GroqBackend(LLMBackend):
                         logger.error("CRITICAL: You have hit Groq's DAILY token limit (TPD). Retrying won't help today.")
                         if self.local_fallback:
                             logger.info("Falling back to LocalBackend as configured...")
-                            return self.local_fallback.generate(system_prompt, user_prompt)
+                            return self.local_fallback.generate(system_prompt, user_prompt, repetition_penalty=repetition_penalty)
                         else:
                             logger.error("Fix: Please switch to 'local' backend in configs/default.yaml or wait 24h.")
                             raise e
@@ -145,7 +150,7 @@ class GroqBackend(LLMBackend):
                         continue
                     elif self.local_fallback:
                         logger.warning("Falling back to LocalBackend due to Groq rate limits.")
-                        return self.local_fallback.generate(system_prompt, user_prompt)
+                        return self.local_fallback.generate(system_prompt, user_prompt, repetition_penalty=repetition_penalty)
                 
                 # Fail fast on auth errors
                 if "401" in err_msg or "invalid api key" in err_msg or "invalid_api_key" in err_msg or (hasattr(e, "status_code") and e.status_code == 401):

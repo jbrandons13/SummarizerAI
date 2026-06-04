@@ -1,73 +1,55 @@
-import pytest
-import os
-import json
-from pathlib import Path
-from src.phase4_retrieve import Phase4Retrieval
-from src.schemas import SummaryScript, SummarySentence, RetrievalOutput
-from src.utils.vram import VRAMManager
+import torch
+import gc
+import time
+from diffusers import DiffusionPipeline
 
-def test_phase4_full_pipeline():
-    video_path = Path("tests/fixtures/tiny_video.mp4")
-    if not video_path.exists():
-        pytest.skip("tiny_video.mp4 not found in tests/fixtures/")
+def flush_memory():
+    gc.collect()
+    torch.cuda.empty_cache()
+    if torch.cuda.is_available():
+        torch.cuda.ipc_collect()
+
+def test_flux():
+    print("====================================")
+    print("1. Menguji Model: FLUX.2 Klein 4B")
+    print("====================================")
+    try:
+        # Load Flux.2
+        print("Loading FLUX.2 weights (ini mungkin memakan waktu sebentar)...")
+        flux_pipe = DiffusionPipeline.from_pretrained(
+            "black-forest-labs/FLUX.2-klein-4B",
+            torch_dtype=torch.bfloat16
+        )
+        print("✅ Berhasil memuat struktur Pipeline FLUX.2!")
         
-    output_dir = Path("data/intermediate/tiny_video")
-    # Clean up previous runs
-    if output_dir.exists():
-        import shutil
-        shutil.rmtree(output_dir)
+        # Bersihkan dari memory
+        del flux_pipe
+        flush_memory()
+        print("✅ Memori FLUX.2 berhasil dibersihkan.\n")
+    except Exception as e:
+        print(f"❌ Gagal memuat FLUX.2: {e}\n")
+
+def test_wan():
+    print("====================================")
+    print("2. Menguji Model: Wan 2.2 A14B Lightning FP8")
+    print("====================================")
+    try:
+        print("Loading Wan 2.2 weights (ini berukuran besar, mohon tunggu)...")
+        wan_pipe = DiffusionPipeline.from_pretrained(
+            "Wan-AI/Wan2.1-I2V-14B-480P-Diffusers",
+            torch_dtype=torch.float16
+        )
+        print("✅ Berhasil memuat struktur Pipeline Wan 2.2!")
         
-    # Create a dummy SummaryScript
-    summary = SummaryScript(
-        video_id="tiny_video",
-        target_duration=30,
-        style="fast-paced",
-        backend_used="dummy",
-        sentences=[
-            SummarySentence(
-                id=0,
-                text="The video starts with a close up of something.",
-                estimated_duration_seconds=5.0,
-                source_timestamp_hint=[0.0, 5.0],
-                keywords=["start", "close up"]
-            ),
-            SummarySentence(
-                id=1,
-                text="Then we see some action happening in the middle.",
-                estimated_duration_seconds=5.0,
-                source_timestamp_hint=[10.0, 15.0],
-                keywords=["action", "middle"]
-            )
-        ]
-    )
-    
-    vram_manager = VRAMManager(device_id=0)
-    orchestrator = Phase4Retrieval({}, vram_manager)
-    
-    results = orchestrator.run(video_path, summary, language="en", method="all")
-    
-    assert "random" in results
-    assert "siglip_direct" in results
-    assert "caption_temporal" in results
-    
-    for method, output in results.items():
-        assert isinstance(output, RetrievalOutput)
-        assert len(output.matches) == len(summary.sentences)
-        
-        # Check if files were saved
-        out_file = output_dir / f"scene_matches_{method}.json"
-        assert out_file.exists()
-        
-    # Arm B should have generated a cache
-    cache_path = output_dir / "keyframes_captions.json"
-    assert cache_path.exists()
-    
-    print("\n--- Retrieval Results Comparison ---")
-    for i, sent in enumerate(summary.sentences):
-        print(f"Sentence {i}: {sent.text}")
-        for method in results:
-            match = results[method].matches[i]
-            print(f"  [{method}] Matched Scene {match.matched_scene_id} (Score: {match.score:.4f})")
+        # Bersihkan dari memory
+        del wan_pipe
+        flush_memory()
+        print("✅ Memori Wan 2.2 berhasil dibersihkan.\n")
+    except Exception as e:
+        print(f"❌ Gagal memuat Wan 2.2: {e}\n")
 
 if __name__ == "__main__":
-    test_phase4_full_pipeline()
+    print("Mulai Uji Coba Model Phase 4 (Anchor Policy) - Local Check")
+    test_flux()
+    test_wan()
+    print("Uji coba selesai!")

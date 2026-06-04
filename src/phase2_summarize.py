@@ -25,9 +25,10 @@ RULES:
 2. HOOK: Start with a power statement. Never say "Starting video" or "In this clip".
 3. TONE: {style_description}
 4. SPELL NUMBERS: Say "seven minutes" not "7m".
-5. LENGTH: Target {target_duration} seconds.
+5. LENGTH: Aim for UP TO {target_duration} seconds, but PRIORITIZE distinct, non-repetitive content over reaching this target. If the source does not contain enough distinct ideas, produce FEWER sentences. It is better to be shorter than to repeat or pad.
 6. CONTENT ONLY: Summarize the MAIN TOPIC and FACTUAL CLAIMS of the video. Do NOT summarize vocabulary definitions, word explanations, pronunciation guides, or language teaching segments. Focus on WHAT the video is about, not HOW it teaches.
 7. NO REPETITION: Each sentence must cover a DIFFERENT aspect or subtopic. Never rephrase the same point in multiple sentences.
+7a. GRANULARITY: Aim for 7-10 seconds per sentence, each covering ONE specific concept, claim, or detail (do not pack multiple ideas into one sentence). The number of sentences MUST match the amount of distinct content in the source, NOT a fixed target. NEVER repeat or rephrase a point you have already made in order to reach the target length.
 8. VISUAL KEYWORDS: The "keywords" field must contain VISUAL descriptions of what might appear on screen during that part of the video. Think: what would a viewer SEE? Use concrete nouns (e.g., "bar chart", "person running", "close-up of chip") not abstract concepts (e.g., "performance", "health", "innovation").
 9. TIMESTAMP ACCURACY: The "source_timestamp_hint" must match the approximate time range in the transcript where the information for that sentence originally appears. Use the timestamps provided in the transcript. This is critical for visual matching.
 
@@ -40,13 +41,13 @@ STYLE: {style_description}
 RULES:
 1. JSON ONLY: No introductory text.
 2. FLOW: Ensure sentences transition logically without repetition.
-3. LENGTH: Target total {target_duration} seconds.
+3. LENGTH: Aim for up to {target_duration} seconds total, but do NOT repeat or pad to reach it — drop redundant sentences and keep only distinct points.
 
 SCHEMA:
 {schema_json}"""
 
 FEW_SHOT_EXAMPLE = """[Example input/output for format reference only]
-Input: [00:15] Sleep quality is vital for brain function. [00:22] Most people need eight hours but quality wins. [01:05] A new study from Harvard shows napping can reduce cortisol levels. [01:30] The word 'rejuvenate' means to restore energy. [02:10] Brain scans revealed that nappers had larger hippocampal volume.
+Input: [00:15] Sleep quality is vital for brain function. [00:22] Most people need eight hours but quality wins. [00:38] Deep sleep is when memory consolidation happens. [00:55] REM sleep helps emotional regulation. [01:05] A new study from Harvard shows napping can reduce cortisol levels. [01:18] Cortisol is a stress hormone produced by the adrenal glands. [01:30] The word 'rejuvenate' means to restore energy. [01:45] Naps as short as 20 minutes already show measurable benefits. [02:00] Longer naps over 60 minutes may cause grogginess. [02:10] Brain scans revealed that nappers had larger hippocampal volume.
 Output:
 {
   "video_id": "demo",
@@ -56,24 +57,59 @@ Output:
   "sentences": [
     {
       "id": 0,
-      "text": "Quality rest beats duration every time, and new research shows that how you sleep matters more than how long.",
-      "estimated_duration_seconds": 6.5,
+      "text": "Sleep quality matters more than total hours, with new research highlighting why.",
+      "estimated_duration_seconds": 8.0,
       "source_timestamp_hint": [15.0, 22.0],
-      "keywords": ["person sleeping in bed", "alarm clock", "sleep quality infographic"]
+      "keywords": ["person sleeping in bed", "alarm clock"]
     },
     {
       "id": 1,
-      "text": "A Harvard study found that short naps can significantly lower stress hormones in the body.",
-      "estimated_duration_seconds": 6.0,
-      "source_timestamp_hint": [65.0, 90.0],
-      "keywords": ["Harvard university logo", "scientist in lab", "cortisol chart"]
+      "text": "Deep sleep is the phase where the brain consolidates daily memories.",
+      "estimated_duration_seconds": 7.0,
+      "source_timestamp_hint": [38.0, 55.0],
+      "keywords": ["brain waves graph", "memory neurons firing"]
     },
     {
       "id": 2,
-      "text": "Brain scans of regular nappers showed a noticeably larger hippocampus, the region linked to memory.",
-      "estimated_duration_seconds": 6.5,
+      "text": "REM sleep plays a separate role in regulating emotions and mood.",
+      "estimated_duration_seconds": 7.0,
+      "source_timestamp_hint": [55.0, 65.0],
+      "keywords": ["REM eye movement closeup", "mood chart"]
+    },
+    {
+      "id": 3,
+      "text": "Harvard researchers discovered that short naps significantly lower cortisol levels.",
+      "estimated_duration_seconds": 8.0,
+      "source_timestamp_hint": [65.0, 78.0],
+      "keywords": ["Harvard logo", "scientist in lab"]
+    },
+    {
+      "id": 4,
+      "text": "Cortisol is the body's primary stress hormone, released by the adrenal glands.",
+      "estimated_duration_seconds": 7.0,
+      "source_timestamp_hint": [78.0, 90.0],
+      "keywords": ["adrenal gland diagram", "cortisol molecule"]
+    },
+    {
+      "id": 5,
+      "text": "Even a twenty-minute nap can produce measurable cognitive benefits.",
+      "estimated_duration_seconds": 7.0,
+      "source_timestamp_hint": [105.0, 115.0],
+      "keywords": ["20 minute timer", "person napping briefly"]
+    },
+    {
+      "id": 6,
+      "text": "However, naps longer than an hour often cause sleep inertia and grogginess.",
+      "estimated_duration_seconds": 7.5,
+      "source_timestamp_hint": [120.0, 130.0],
+      "keywords": ["tired person yawning", "warning sign"]
+    },
+    {
+      "id": 7,
+      "text": "Brain scans of habitual nappers reveal a larger hippocampus linked to memory.",
+      "estimated_duration_seconds": 7.5,
       "source_timestamp_hint": [130.0, 150.0],
-      "keywords": ["MRI brain scan", "hippocampus diagram", "medical imaging screen"]
+      "keywords": ["MRI brain scan", "hippocampus diagram"]
     }
   ]
 }
@@ -109,9 +145,14 @@ class Phase2Summarizer:
         # Remove trailing commas before closing braces/brackets
         content = re.sub(r',\s*([}\]])', r'\1', content)
         
+        # FIX: Replace hallucinated unquoted strings in 'id' field (like 'bk') with 0
+        content = re.sub(r'"id":\s*[a-zA-Z]+\s*,', r'"id": 0,', content)
+        
         try:
             return json.loads(content)
         except json.JSONDecodeError as e:
+            with open('/tmp/raw_json_dump.txt', 'w') as f:
+                f.write(content)
             logger.error(f"JSON Parsing Error at {e.lineno}:{e.colno}. Attempting secondary cleanup...")
             try:
                 # Remove common non-json prefixes/suffixes that might have survived
@@ -213,6 +254,10 @@ class Phase2Summarizer:
         summary_data["target_duration"] = target_duration
         summary_data["style"] = style
         summary_data["backend_used"] = "groq" if isinstance(self.backend, GroqBackend) else "local"
+        
+        # Fix and reindex sequential IDs in case of hallucinated IDs
+        for idx, sentence_data in enumerate(summary_data.get("sentences", [])):
+            sentence_data["id"] = idx
 
         # Post-process for TTS cleaning
         for sentence_data in summary_data["sentences"]:
@@ -233,7 +278,10 @@ class Phase2Summarizer:
         last_error = None
         for attempt in range(retries):
             try:
-                response = self.backend.generate(system_prompt, user_prompt)
+                response = self.backend.generate(
+                    system_prompt, user_prompt,
+                    repetition_penalty=self.config.get("repetition_penalty", 1.1)
+                )
                 data = self._extract_json(response)
                 # Minimal validation here, full validation at the end of run()
                 if "sentences" not in data:
