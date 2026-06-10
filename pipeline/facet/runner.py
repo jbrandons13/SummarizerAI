@@ -103,7 +103,11 @@ def run_arm(stamp, arm, video, w_grid, tau, kwargs=None):
     records = []
     
     for shot in sb:
-        shot_id = shot["shot_id"]
+        shot_id_orig = shot["shot_id"]
+        # Namespace mapping layer
+        prefix = "geo" if "rocks" in video else "eco"
+        shot_id = f"{prefix}_{shot_id_orig.split('_')[1]}"
+        
         seed = seeds.get(shot_id)
         if seed is None:
             continue
@@ -111,7 +115,7 @@ def run_arm(stamp, arm, video, w_grid, tau, kwargs=None):
         for w in w_grid:
             img_dir = os.path.join(run_dir, "images", arm, f"w{w:.2f}")
             os.makedirs(img_dir, exist_ok=True)
-            img_path = os.path.join(img_dir, f"{shot_id}.png")
+            img_path = os.path.join(img_dir, f"{shot_id_orig}.png")
             
             rec = {
                 "run_id": stamp,
@@ -119,7 +123,7 @@ def run_arm(stamp, arm, video, w_grid, tau, kwargs=None):
                 "arm": arm,
                 "video": video,
                 "concept_id": shot.get("topic_tag", "concept"),
-                "shot_id": shot_id,
+                "shot_id": shot_id_orig,
                 "seed": seed,
                 "knobs": {"w": w},
                 "unet_calls": facet_conf["steps"] * 2,

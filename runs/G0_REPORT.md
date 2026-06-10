@@ -110,5 +110,41 @@ Adaptive advantage: c_bar -0.0237 at ref_sim diff +0.0181
 **Re-baseline Rule Application**: 
 The original thesis metric (`DINOv2` for `ref_sim`, `CLIP` for concept presence) was never lost, merely confused in the prompt's thresholds. Since the units are correct and stable, we can re-judge the G0 gate using the proper original `adaptive_anchor.py` logic.
 
-**Next Action**: 
-Waiting for human confirmation to proceed.
+### 6. Canonical G0 Re-Evaluation (v2 Latents)
+
+Per the resumption order, we regenerated the 14 geology shots across `W U {0}` using the proper namespaced `geo_001` - `geo_014` seeds/latents. This represents the canonical Phase 4 ground truth.
+
+#### 6.1 Fixed-Scale Frontier
+| w | mean_concept | c̄ (sim to w=0) | ref_sim (diag) |
+|---|---|---|---|
+| 0.00 | 0.2403 | 1.0000 | 0.5270 |
+| 0.20 | 0.2662 | 0.7373 | 0.7678 |
+| 0.30 | 0.2782 | 0.6580 | 0.8539 |
+| 0.40 | 0.2894 | 0.6131 | 0.8980 |
+| 0.50 | 0.2906 | 0.5637 | 0.9188 |
+| 0.60 | 0.2914 | 0.5529 | 0.9254 |
+| 0.80 | 0.2897 | 0.5222 | 0.9172 |
+
+#### 6.2 Adaptive Selection & Post-Hoc Sweep
+**Adaptive Point (τ = 0.70)**: 
+* `mean_concept` = 0.2677
+* `c̄` = 0.6813
+
+**τ-Sweep (Diagnostic)**:
+| τ | c̄ | mean_concept |
+|---|---|---|
+| 0.50 | 0.5914 | 0.2780 |
+| 0.60 | 0.6351 | 0.2744 |
+| 0.70 | 0.6813 | 0.2677 |
+| 0.80 | 0.7206 | 0.2669 |
+| 0.90 | 0.7373 | 0.2662 |
+
+#### 6.3 Gate Decision
+**Criterion**: Adaptive `c̄` >= best-fixed `c̄` + 0.08 at matched `mean_concept` (±0.02).
+**Evaluation**:
+* Matched Fixed Point: `w=0.20` (`mean_concept` = 0.2662, diff = 0.0015).
+* Best Fixed `c̄`: 0.7373
+* Adaptive `c̄`: 0.6813
+* Advantage: `0.6813 - 0.7373 = -0.0560`
+
+**Verdict**: **FAIL**. The adaptive selection logic yields a negative advantage against the fixed-scale frontier on the new canonical v2 geology latents. Stage 1 (Alt-1) is blocked.

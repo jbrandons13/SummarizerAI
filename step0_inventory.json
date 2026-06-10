@@ -1,0 +1,51 @@
+{
+  "pipeline/facet/runner.py": {
+    "exists": true,
+    "hash": "3f38465e"
+  },
+  "pipeline/facet/scoring_wrap.py": {
+    "exists": true,
+    "hash": "94454568"
+  },
+  "pipeline/facet/alt1.py": {
+    "exists": true,
+    "hash": "55c1297c"
+  },
+  "pipeline/facet/centroid.py": {
+    "exists": true,
+    "hash": "c0dae22d"
+  },
+  "configs/facet.yaml": {
+    "exists": true,
+    "hash": "3c5834af"
+  },
+  "pipeline/facet/seeds.json": {
+    "exists": true,
+    "hash": "f70a9748"
+  },
+  "pipeline/facet/latents_cache": {
+    "exists": true,
+    "hash": "DIR",
+    "files": 30
+  },
+  "pipeline/facet/ledger.json": {
+    "exists": true,
+    "hash": "377af605"
+  },
+  "runs/G0_REPORT.md": {
+    "exists": true,
+    "hash": "5e0c0f25"
+  },
+  "runs/probe/contact_sheet.png": {
+    "exists": true,
+    "hash": "0139efc2"
+  },
+  "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/storyboard.json": {
+    "exists": true,
+    "hash": "39724d24"
+  },
+  "data/intermediate/2D7hZpIYlCA_hydrologic-carbon-cycles-crash-course-ecology/phase4/storyboard.json": {
+    "exists": true,
+    "hash": "77f1f981"
+  }
+}

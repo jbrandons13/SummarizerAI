@@ -1,0 +1,1 @@
+# centroid.py stub
