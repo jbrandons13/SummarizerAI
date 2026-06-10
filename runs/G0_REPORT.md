@@ -148,3 +148,15 @@ Per the resumption order, we regenerated the 14 geology shots across `W U {0}` u
 * Advantage: `0.6813 - 0.7373 = -0.0560`
 
 **Verdict**: **FAIL**. The adaptive selection logic yields a negative advantage against the fixed-scale frontier on the new canonical v2 geology latents. Stage 1 (Alt-1) is blocked.
+
+### 7. G0 Gate Amendment & Final Deliverable
+
+The G0 gate's deliverable is hereby restated as: **"Canonical measured baseline established + reproduction findings documented."**
+
+**Current Findings Recorded Verbatim:**
+* Ecology pairs verified in cache; geology pairs absent from all caches.
+* Geology v2 advantage = -0.056.
+
+**Amended Success Criteria for Later Stages:**
+* **P1 and Frontier Claims**: P1 and every frontier-win claim is judged against the **fixed-scale frontier** (the stronger baseline), with DACA-as-implemented plotted as the thesis-method curve alongside.
+* **Secondary Axes Discrimination**: Note also for the record: `mean_concept`'s dynamic range here is only ~0.05, so the (pairwise, c̄) secondary axis and the VLM judge will carry more discriminative weight in Stages 4–6 than originally assumed.
