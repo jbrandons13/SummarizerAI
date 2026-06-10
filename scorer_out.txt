@@ -1,0 +1,32 @@
+[ScoringWrap] Loading DINOv2: facebook/dinov2-base
+[ScoringWrap] Loading CLIP: openai/clip-vit-large-patch14
+
+## Reproduction Table: DACA on Geology
+
+### 1. Fixed-scale frontier
+| w | c_bar (sim to w=0) | ref_sim (sim to canonical) | clip_t |
+|---|---|---|---|
+| 0.00 | 1.0000 | 0.4810 | 0.2247 |
+| 0.20 | 0.6776 | 0.7753 | 0.1964 |
+| 0.30 | 0.5930 | 0.8685 | 0.1911 |
+| 0.40 | 0.5594 | 0.9016 | 0.1856 |
+| 0.50 | 0.5153 | 0.9195 | 0.1786 |
+| 0.60 | 0.4973 | 0.9206 | 0.1781 |
+| 0.80 | 0.4828 | 0.9099 | 0.1762 |
+
+### 2. Adaptive Selection (tau = 0.70)
+**Adaptive (tau=0.70)**: c_bar = 0.6539, ref_sim = 0.7934
+
+**Qualitative check:**
+Nearest fixed scale (w=0.3): c_bar = 0.5930, ref_sim = 0.8685
+Adaptive advantage: c_bar +0.0609 at ref_sim diff -0.0751
+-> QUALITATIVE REPRODUCTION: FAIL
+
+### 3. Post-hoc frontier (tau sweep)
+| tau | c_bar | ref_sim |
+|---|---|---|
+| 0.50 | 0.5639 | 0.8628 |
+| 0.60 | 0.6105 | 0.8281 |
+| 0.70 | 0.6539 | 0.7934 |
+| 0.80 | 0.6746 | 0.7792 |
+| 0.90 | 0.6776 | 0.7753 |

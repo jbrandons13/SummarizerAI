@@ -1,0 +1,7 @@
+video,condition,n_pairs,content_fidelity,same_concept_rate,content_homogenization_rate
+V3,daca,15,0.6000,0.4444,0.0625
+V3,fixed_high_w (w=1.0),15,0.4000,1.0000,0.0625
+V4,daca,13,0.9231,0.6667,0.0000
+V4,fixed_high_w (w=1.0),13,0.0769,1.0000,0.0000
+V5,daca,15,0.5333,0.5714,0.0000
+V5,fixed_high_w (w=1.0),15,0.4667,1.0000,0.0000

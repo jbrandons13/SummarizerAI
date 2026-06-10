@@ -1,0 +1,11 @@
+- **Torch version**: 2.8.0+cu128
+- **Diffusers version**: 0.36.0
+- **unet_attn_map.txt dumped**: Yes (144 processors).
+  - `down_blocks.2.attentions.1` present: True
+  - `up_blocks.0.attentions.{0,1,2}` present: True, True, True
+- **w=0 in W grid**: False (Grid: [0.2, 0.3, 0.4, 0.5, 0.6, 0.8]). 30 w=0 renders added to A0.
+- **ecology control shot flagged in facet.yaml**: Yes (`shot_011`).
+- **Latents count**: 16
+  - Hashes (sample): shot_001.pt: 02e58918, shot_002.pt: 81c5eb3f, shot_003.pt: 382050d1, shot_004.pt: 5b77e009, shot_005.pt: fb638a50
+- **Measured time per generation**: 10.76 s/gen (over 98 logged gens).
+- **Total concepts found**: 12 (tags: plant_role_in_carbon_cycle, igneous_rock_formation, hydrological_cycle, rock_cycle_overview, global_geological_map...)
