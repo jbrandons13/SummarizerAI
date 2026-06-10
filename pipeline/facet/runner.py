@@ -24,25 +24,27 @@ def get_run_dir(run_stamp):
     return os.path.join("runs", run_stamp)
 
 def init_latents(pipe, seeds, run_dir, resolution):
-    latents_dir = os.path.join(run_dir, "latents")
-    os.makedirs(latents_dir, exist_ok=True)
+    import hashlib
+    latents_dir = "pipeline/facet/latents_cache"
     latents_map = {}
     
-    # SDXL latent shape
-    height, width = resolution[1], resolution[0]
-    shape = (1, pipe.unet.config.in_channels, height // pipe.vae_scale_factor, width // pipe.vae_scale_factor)
-    
-    print(f"Latent shape expected: {shape}")
-    
+    with open("pipeline/facet/ledger.json", "r") as f:
+        ledger = json.load(f)
+        
     for shot_id, seed in seeds.items():
         latent_path = os.path.join(latents_dir, f"{shot_id}.pt")
-        if os.path.exists(latent_path):
-            latents = torch.load(latent_path, map_location="cuda")
-        else:
-            generator = torch.Generator(device="cuda").manual_seed(seed)
-            latents = torch.randn(shape, generator=generator, device="cuda", dtype=torch.float16)
-            torch.save(latents, latent_path)
+        if not os.path.exists(latent_path):
+            print(f"Warning: Latent missing for {shot_id}")
+            continue
+            
+        with open(latent_path, "rb") as f:
+            h = hashlib.sha256(f.read()).hexdigest()
+            
+        assert h == ledger.get(shot_id), f"Latent hash mismatch for {shot_id}! Expected {ledger.get(shot_id)}, got {h}"
+        
+        latents = torch.load(latent_path, map_location="cuda")
         latents_map[shot_id] = latents
+        
     return latents_map
 
 def run_arm(stamp, arm, video, w_grid, tau, kwargs=None):

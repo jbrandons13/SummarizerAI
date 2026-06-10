@@ -59,7 +59,8 @@ def main():
         
         text_prompt = text_map.get(r["shot_id"], "")
         
-        scores = scorer.score_shot(img_path, w0_path, ref_path, text_prompt)
+        global_concept = "a colorful cartoon illustration of rocks, rocky terrain, boulders and stones"
+        scores = scorer.score_shot(img_path, w0_path, ref_path, text_prompt, global_concept)
         r["metrics"] = scores
         out_records.append(r)
         
@@ -84,25 +85,25 @@ def main():
         
     print("\n## Reproduction Table: DACA on Geology")
     print("\n### 1. Fixed-scale frontier")
-    print("| w | c_bar (sim to w=0) | ref_sim (sim to canonical) | clip_t |")
+    print("| w | c_bar (sim to w=0) | mean_concept (CLIP) | ref_sim (diag) |")
     print("|---|---|---|---|")
     
     means_fixed = {}
     for w in [0.0] + W_grid:
         c_s_vals = [r["metrics"]["c_s"] for sid, d in shot_data.items() for rw, r in d.items() if abs(rw - w) < 0.01]
+        concept_vals = [r["metrics"]["mean_concept"] for sid, d in shot_data.items() for rw, r in d.items() if abs(rw - w) < 0.01]
         ref_vals = [r["metrics"]["ref_sim"] for sid, d in shot_data.items() for rw, r in d.items() if abs(rw - w) < 0.01]
-        clipt_vals = [r["metrics"]["clip_t"] for sid, d in shot_data.items() for rw, r in d.items() if abs(rw - w) < 0.01]
         
         c_bar = sum(c_s_vals) / len(c_s_vals) if c_s_vals else float('nan')
+        mean_concept = sum(concept_vals) / len(concept_vals) if concept_vals else float('nan')
         ref_sim = sum(ref_vals) / len(ref_vals) if ref_vals else float('nan')
-        clip_t = sum(clipt_vals) / len(clipt_vals) if clipt_vals else float('nan')
-        means_fixed[w] = (c_bar, ref_sim, clip_t)
+        means_fixed[w] = (c_bar, mean_concept, ref_sim)
         
-        print(f"| {w:.2f} | {c_bar:.4f} | {ref_sim:.4f} | {clip_t:.4f} |")
+        print(f"| {w:.2f} | {c_bar:.4f} | {mean_concept:.4f} | {ref_sim:.4f} |")
         
     print("\n### 2. Adaptive Selection (tau = 0.70)")
     adaptive_c = []
-    adaptive_ref = []
+    adaptive_concept = []
     for sid, d in shot_data.items():
         w_star = min(W_grid)
         valid_ws = [w for w in W_grid if w in d and d[w]["metrics"]["c_s"] >= tau]
@@ -110,27 +111,27 @@ def main():
             w_star = max(valid_ws)
         
         adaptive_c.append(d[w_star]["metrics"]["c_s"])
-        adaptive_ref.append(d[w_star]["metrics"]["ref_sim"])
+        adaptive_concept.append(d[w_star]["metrics"]["mean_concept"])
         
     ad_c_bar = sum(adaptive_c) / len(adaptive_c)
-    ad_ref_sim = sum(adaptive_ref) / len(adaptive_ref)
+    ad_concept = sum(adaptive_concept) / len(adaptive_concept)
     
-    print(f"**Adaptive (tau=0.70)**: c_bar = {ad_c_bar:.4f}, ref_sim = {ad_ref_sim:.4f}")
+    print(f"**Adaptive (tau=0.70)**: c_bar = {ad_c_bar:.4f}, mean_concept = {ad_concept:.4f}")
     
-    # Check qualitative reproduction criteria
-    best_fixed = min([w for w in W_grid if 0.3 <= w <= 0.5], key=lambda w: abs(means_fixed[w][1] - ad_ref_sim))
-    bf_c_bar, bf_ref_sim, _ = means_fixed[best_fixed]
+    # Check qualitative reproduction criteria based on primary axes (mean_concept, c_bar)
+    best_fixed = min([w for w in W_grid if 0.3 <= w <= 0.5], key=lambda w: abs(means_fixed[w][1] - ad_concept))
+    bf_c_bar, bf_concept, _ = means_fixed[best_fixed]
     
     print(f"\n**Qualitative check:**")
-    print(f"Nearest fixed scale (w={best_fixed}): c_bar = {bf_c_bar:.4f}, ref_sim = {bf_ref_sim:.4f}")
-    print(f"Adaptive advantage: c_bar +{ad_c_bar - bf_c_bar:.4f} at ref_sim diff {ad_ref_sim - bf_ref_sim:.4f}")
-    if (ad_c_bar >= bf_c_bar + 0.08) and abs(ad_ref_sim - bf_ref_sim) <= 0.02:
+    print(f"Nearest fixed scale (w={best_fixed}): c_bar = {bf_c_bar:.4f}, mean_concept = {bf_concept:.4f}")
+    print(f"Adaptive advantage: c_bar +{ad_c_bar - bf_c_bar:.4f} at mean_concept diff {ad_concept - bf_concept:.4f}")
+    if (ad_c_bar >= bf_c_bar + 0.08) and abs(ad_concept - bf_concept) <= 0.02:
         print("-> QUALITATIVE REPRODUCTION: PASS")
     else:
         print("-> QUALITATIVE REPRODUCTION: FAIL")
 
     print("\n### 3. Post-hoc frontier (tau sweep)")
-    print("| tau | c_bar | ref_sim |")
+    print("| tau | c_bar | mean_concept |")
     print("|---|---|---|")
     for t in [0.5, 0.6, 0.7, 0.8, 0.9]:
         ac, ar = [], []
@@ -140,7 +141,7 @@ def main():
             if valid_ws:
                 w_star = max(valid_ws)
             ac.append(d[w_star]["metrics"]["c_s"])
-            ar.append(d[w_star]["metrics"]["ref_sim"])
+            ar.append(d[w_star]["metrics"]["mean_concept"])
         tc = sum(ac)/len(ac) if ac else float('nan')
         tr = sum(ar)/len(ar) if ar else float('nan')
         print(f"| {t:.2f} | {tc:.4f} | {tr:.4f} |")

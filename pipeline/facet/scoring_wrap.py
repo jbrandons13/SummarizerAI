@@ -41,7 +41,20 @@ class ScoringWrap:
         
         return float((f * t).sum().item())
         
-    def score_shot(self, image_path, w0_path, ref_path, text_prompt):
+    @torch.no_grad()
+    def get_clip_concept(self, image_path, global_text):
+        im = Image.open(image_path).convert("RGB")
+        ii = self.clip_proc(images=im, return_tensors="pt").to(self.dev)
+        f = self.clip_model.get_image_features(**ii)
+        f = f / f.norm(dim=-1, keepdim=True)
+        
+        ti = self.clip_proc(text=[global_text], return_tensors="pt", padding=True).to(self.dev)
+        t = self.clip_model.get_text_features(**ti)
+        t = t / t.norm(dim=-1, keepdim=True)
+        
+        return float((f * t).sum().item())
+        
+    def score_shot(self, image_path, w0_path, ref_path, text_prompt, global_concept_text=""):
         res = {}
         if w0_path and os.path.exists(w0_path):
             emb1 = self.embed_dino(image_path)
@@ -58,4 +71,9 @@ class ScoringWrap:
             res["ref_sim"] = float("nan")
             
         res["clip_t"] = self.get_clip_t(image_path, text_prompt)
+        
+        if global_concept_text:
+            res["mean_concept"] = self.get_clip_concept(image_path, global_concept_text)
+            
         return res
+
