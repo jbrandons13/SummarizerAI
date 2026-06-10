@@ -1,0 +1,120 @@
+{
+    "video_id": "MRtg6A1f2Ko",
+    "target_duration": 240,
+    "style": "informative",
+    "backend_used": "local",
+    "sentences": [
+        {
+            "id": 0,
+            "text": "The iPhone 16 series introduces minor physical changes and emphasizes new A.I. features.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                0.031,
+                14.13
+            ],
+            "keywords": [
+                "iPhone 16",
+                "smartphone design",
+                "AI feature highlights"
+            ]
+        },
+        {
+            "id": 1,
+            "text": "Apple claims the new phones offer improved battery life and faster charging capabilities.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                253.73,
+                320.554
+            ],
+            "keywords": [
+                "battery life improvement",
+                "fast charging capability",
+                "charging brick"
+            ]
+        },
+        {
+            "id": 2,
+            "text": "The new camera control button offers enhanced manual control options for photography enthusiasts.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                442.173,
+                585.43
+            ],
+            "keywords": [
+                "camera control button",
+                "manual control options",
+                "photography settings"
+            ]
+        },
+        {
+            "id": 3,
+            "text": "The iPhone 16 Pro model includes upgraded cameras with improved low-light performance and zoom capabilities.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                679.807,
+                864.828
+            ],
+            "keywords": [
+                "Pro model",
+                "cameras upgrade",
+                "low-light performance"
+            ]
+        },
+        {
+            "id": 4,
+            "text": "Despite marketing focus on A.I. features, the current release lacks many promised functionalities.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                955.027,
+                987.607
+            ],
+            "keywords": [
+                "lack of AI features",
+                "promised functionalities",
+                "marketing discrepancy"
+            ]
+        },
+        {
+            "id": 5,
+            "text": "The author recommends buying the iPhone 16 for those needing an upgrade from older models.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                1131.404,
+                1151.539
+            ],
+            "keywords": [
+                "recommendation",
+                "upgrade advice",
+                "older models"
+            ]
+        },
+        {
+            "id": 6,
+            "text": "For serious photographers and videographers, the iPhone 16 Pro provides noticeable improvements over the standard model.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                1159.833,
+                1222.413
+            ],
+            "keywords": [
+                "serious photographers",
+                "videographers",
+                "notable improvements"
+            ]
+        },
+        {
+            "id": 7,
+            "text": "Overall, the new iPhones represent incremental advancements with potential future enhancements through software updates.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                1222.413,
+                1236.16
+            ],
+            "keywords": [
+                "incremental advancements",
+                "future enhancements",
+                "software updates"
+            ]
+        }
+    ]
+}

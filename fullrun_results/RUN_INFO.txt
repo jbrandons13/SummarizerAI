@@ -1,0 +1,24 @@
+=== RUN OVERVIEW ===
+Video Mapping:
+- V1 = Geology (where-do-rocks-come-from-crash-course-ge)
+- V2 = Ecology (hydrologic-carbon-cycles-crash-course-ecology)
+- V3 = Sun
+- V4 = Heart
+- V5 = iPhone (contrast control)
+
+Execution Status:
+- V1 (Geology): Phase A (from cache), Phase B (DACA + FIXED) COMPLETED.
+- V2 (Ecology): Phase A (from cache), Phase B (DACA + FIXED) COMPLETED.
+- V3 (Sun): Phase A (fine grid sweep), Phase B (DACA + FIXED) COMPLETED.
+- V4 (Heart): Phase A (fine grid sweep), Phase B (DACA + FIXED) COMPLETED.
+- V5 (iPhone): Phase A (fine grid sweep) COMPLETED. Phase B skipped as per brief (contrast control).
+
+Total videos with Phase B results: 4 videos (8 total final MP4s).
+
+Tau (τ) Sweep:
+NO TAU SWEEP (Tau was strictly locked at 0.70 for all videos as defined in run_overnight_v2.sh to match thesis methodology constraints).
+
+Errors or Partial Data:
+- NO FAILED EXPERIMENTS. All data completed perfectly.
+- V5 iPhone does not have Phase B outputs, which is INTENTIONAL (contrast control).
+- V1/V2 used existing Phase A fine/coarse data from intermediate cache to strictly lock thesis metrics and prevent visual/data drift.

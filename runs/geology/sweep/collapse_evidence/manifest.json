@@ -1,0 +1,110 @@
+[
+  {
+    "shot_id": "shot_005",
+    "weight": 0.0,
+    "file": "shot_005_w0.0.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_005_w0.0.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.2,
+    "file": "shot_005_w0.2.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_005_w0.2.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.4,
+    "file": "shot_005_w0.4.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_005_w0.4.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.6,
+    "file": "shot_005_w0.6.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_005_w0.6.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.8,
+    "file": "shot_005_w0.8.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_005_w0.8.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 1.0,
+    "file": "shot_005_w1.0.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_005_w1.0.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.0,
+    "file": "shot_011_w0.0.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_011_w0.0.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.2,
+    "file": "shot_011_w0.2.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_011_w0.2.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.4,
+    "file": "shot_011_w0.4.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_011_w0.4.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.6,
+    "file": "shot_011_w0.6.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_011_w0.6.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.8,
+    "file": "shot_011_w0.8.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_011_w0.8.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 1.0,
+    "file": "shot_011_w1.0.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_011_w1.0.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.0,
+    "file": "shot_013_w0.0.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_013_w0.0.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.2,
+    "file": "shot_013_w0.2.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_013_w0.2.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.4,
+    "file": "shot_013_w0.4.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_013_w0.4.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.6,
+    "file": "shot_013_w0.6.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_013_w0.6.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.8,
+    "file": "shot_013_w0.8.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_013_w0.8.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 1.0,
+    "file": "shot_013_w1.0.png",
+    "path": "data/intermediate/lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge/phase4/collapse_evidence/shot_013_w1.0.png"
+  }
+]

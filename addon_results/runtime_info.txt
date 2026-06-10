@@ -1,0 +1,6 @@
+Representative Video: V3 (Sun), 12 mins raw, 16 shots.
+GPU: RTX 3090 24GB
+Driver/Torch: Extracted via nvidia-smi / local torch version (PyTorch 2.6.0)
+P4 Mode: Single-w (w=0.2). Run for 1 shot and extrapolated x16.
+P5 Mode: Wan I2V. Run for 1 shot and extrapolated x16.
+Measurement Method: psutil/subprocess polling nvidia-smi memory.used.

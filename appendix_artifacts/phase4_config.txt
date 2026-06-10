@@ -1,0 +1,15 @@
+Base model: stabilityai/stable-diffusion-xl-base-1.0
+Cartoon LoRA: models/loras/flat_color_anime_xl_v2.safetensors (Strength/Weight: 0.8)
+IP-Adapter: ip-adapter-plus_sdxl_vit-h.safetensors (Scale: 0.5 for CONCEPT_ANCHOR, 0.4 for SOFT_CHAIN)
+Sampler + scheduler: Default SDXL diffusers EulerDiscreteScheduler / EulerAncestralDiscreteScheduler
+Steps: 30
+CFG/guidance scale: 7.0
+Resolution: 1344x768 (Generation), 832x480 (Output)
+Seed: Deterministic based on SHA256 of shot_id
+Wan I2V: wan2.1-flf2v-14b-720p-Q5_K_M.gguf
+Wan I2V Frames: 81
+Wan I2V FPS: 16.0
+Wan I2V Steps: 30
+Wan I2V Guidance/CFG: 5.5
+Wan I2V Sampler: uni_pc
+Wan I2V Scheduler: simple

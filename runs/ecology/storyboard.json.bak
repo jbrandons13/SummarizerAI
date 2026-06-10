@@ -1,0 +1,181 @@
+{
+  "video_id": "2D7hZpIYlCA_hydrologic-carbon-cycles-crash-course-ecology",
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "visual_description": "A wide view of a two-year-old child playing in the ocean, with large waves in the background, symbolizing the Earth's interconnected cycles.",
+      "image_prompt": "A two-year-old child playing in the ocean, with large waves in the background, symbolizing the Earth's interconnected cycles, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "child",
+        "ocean waves"
+      ],
+      "topic_tag": "earth_interconnected_cycles",
+      "i2v_prompt": "waves gently roll and crest in the ocean, light glints on the water, slow pan right"
+    },
+    {
+      "shot_id": "shot_002",
+      "visual_description": "A close-up view of a child's hand touching the water, with ripples spreading out, symbolizing the cycles involving matter and energy.",
+      "image_prompt": "A close-up view of a child's hand touching the water, with ripples spreading out, symbolizing the cycles involving matter and energy, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "child's hand",
+        "water ripples"
+      ],
+      "topic_tag": "earth_interconnected_cycles",
+      "i2v_prompt": "ripples spread out from the child's hand touching the water, slow tilt down"
+    },
+    {
+      "shot_id": "shot_003",
+      "visual_description": "A wide view of water droplets moving from the atmosphere to land and oceans, illustrating the hydrological cycle.",
+      "image_prompt": "A wide view of water droplets moving from the atmosphere to land and oceans, illustrating the hydrological cycle, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "water droplets",
+        "hydrological cycle"
+      ],
+      "topic_tag": "hydrological_cycle",
+      "i2v_prompt": "water droplets move from the atmosphere to land and oceans, light glints on the droplets, slow pan left"
+    },
+    {
+      "shot_id": "shot_004",
+      "visual_description": "A close-up view of water droplets condensing and precipitating, showing the detailed processes of the hydrological cycle.",
+      "image_prompt": "A close-up view of water droplets condensing and precipitating, showing the detailed processes of the hydrological cycle, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "water droplets",
+        "condensation"
+      ],
+      "topic_tag": "hydrological_cycle",
+      "i2v_prompt": "water droplets condense and precipitate, showing the detailed processes, slow tilt down"
+    },
+    {
+      "shot_id": "shot_005",
+      "visual_description": "A wide view of cloud formation and evaporation, illustrating the key processes in moving water through the environment.",
+      "image_prompt": "A wide view of cloud formation and evaporation, illustrating the key processes in moving water through the environment, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "cloud formation",
+        "evaporation"
+      ],
+      "topic_tag": "water_cycle_processes",
+      "i2v_prompt": "clouds form and evaporate, illustrating the key processes, slow pan right"
+    },
+    {
+      "shot_id": "shot_006",
+      "visual_description": "A close-up view of water droplets evaporating and condensing into clouds, showing the detailed processes of moving water through the environment.",
+      "image_prompt": "A close-up view of water droplets evaporating and condensing into clouds, showing the detailed processes of moving water through the environment, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "water droplets",
+        "clouds"
+      ],
+      "topic_tag": "water_cycle_processes",
+      "i2v_prompt": "water droplets evaporate and condense into clouds, showing the detailed processes, slow tilt down"
+    },
+    {
+      "shot_id": "shot_007",
+      "visual_description": "A wide view of a plant absorbing CO2, illustrating the carbon cycle through ecosystems, including plants, animals, and geological formations.",
+      "image_prompt": "A wide view of a plant absorbing CO2, illustrating the carbon cycle through ecosystems, including plants, animals, and geological formations, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "plant",
+        "carbon cycle"
+      ],
+      "topic_tag": "carbon_cycle",
+      "i2v_prompt": "a plant absorbs CO2, illustrating the carbon cycle, slow pan left"
+    },
+    {
+      "shot_id": "shot_008",
+      "visual_description": "A close-up view of a plant's leaves absorbing CO2, showing the detailed processes of the carbon cycle through ecosystems.",
+      "image_prompt": "A close-up view of a plant's leaves absorbing CO2, showing the detailed processes of the carbon cycle through ecosystems, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "plant leaves",
+        "carbon cycle"
+      ],
+      "topic_tag": "carbon_cycle",
+      "i2v_prompt": "a plant's leaves absorb CO2, showing the detailed processes, slow tilt down"
+    },
+    {
+      "shot_id": "shot_009",
+      "visual_description": "A wide view of a tree growing, illustrating the crucial role of plants in the carbon cycle by converting atmospheric CO2 into biomass.",
+      "image_prompt": "A wide view of a tree growing, illustrating the crucial role of plants in the carbon cycle by converting atmospheric CO2 into biomass, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "tree",
+        "photosynthesis"
+      ],
+      "topic_tag": "plant_role_in_carbon_cycle",
+      "i2v_prompt": "a tree grows, illustrating the crucial role of plants in the carbon cycle, slow pan right"
+    },
+    {
+      "shot_id": "shot_010",
+      "visual_description": "A close-up view of a tree's leaves converting CO2 into biomass, showing the detailed processes of plants in the carbon cycle.",
+      "image_prompt": "A close-up view of a tree's leaves converting CO2 into biomass, showing the detailed processes of plants in the carbon cycle, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "tree leaves",
+        "biomass"
+      ],
+      "topic_tag": "plant_role_in_carbon_cycle",
+      "i2v_prompt": "a tree's leaves convert CO2 into biomass, showing the detailed processes, slow tilt down"
+    },
+    {
+      "shot_id": "shot_011",
+      "visual_description": "A wide view of a coal mine, illustrating the formation of fossil fuels as ancient carbon deposits.",
+      "image_prompt": "A wide view of a coal mine with layers of coal representing ancient carbon deposits, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "coal mine",
+        "fossil fuels"
+      ],
+      "topic_tag": "plant_role_in_carbon_cycle",
+      "i2v_prompt": "layers of coal represent ancient carbon deposits, slow pan left"
+    },
+    {
+      "shot_id": "shot_012",
+      "visual_description": "A close-up view of the coal formation process, showing the pressure and time involved in creating fossil fuels.",
+      "image_prompt": "A close-up view of the coal formation process, showing layers of coal under pressure, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "coal formation",
+        "pressure"
+      ],
+      "topic_tag": "plant_role_in_carbon_cycle",
+      "i2v_prompt": "layers of coal form under pressure, slow tilt down"
+    },
+    {
+      "shot_id": "shot_013",
+      "visual_description": "A wide view of an industrial scene with a smokestack emitting CO2 and an oil rig, illustrating human activities that accelerate the release of stored carbon.",
+      "image_prompt": "A wide view of an industrial scene with a smokestack emitting CO2 and an oil rig, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "industrial smokestack",
+        "oil rig"
+      ],
+      "topic_tag": "plant_role_in_carbon_cycle",
+      "i2v_prompt": "smokestack emits CO2 and an oil rig operates, light glints on the smoke, slow pan right"
+    },
+    {
+      "shot_id": "shot_014",
+      "visual_description": "A close-up view of the smokestack emitting CO2, highlighting the release of stored carbon into the atmosphere.",
+      "image_prompt": "A close-up view of the smokestack emitting CO2, highlighting the release of stored carbon into the atmosphere, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "smokestack",
+        "CO2"
+      ],
+      "topic_tag": "plant_role_in_carbon_cycle",
+      "i2v_prompt": "smokestack emits CO2, highlighting the release of stored carbon, slow tilt down"
+    },
+    {
+      "shot_id": "shot_015",
+      "visual_description": "A wide view of melting permafrost, illustrating the release of additional carbon into the atmosphere.",
+      "image_prompt": "A wide view of melting permafrost with greenhouse gases being released, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "melting permafrost",
+        "greenhouse gases"
+      ],
+      "topic_tag": "plant_role_in_carbon_cycle",
+      "i2v_prompt": "melting permafrost releases greenhouse gases, light glints on the melting ice, slow pan left"
+    },
+    {
+      "shot_id": "shot_016",
+      "visual_description": "A close-up view of melting permafrost, highlighting the contribution to increased atmospheric CO2 levels and global warming.",
+      "image_prompt": "A close-up view of melting permafrost, highlighting the contribution to increased atmospheric CO2 levels and global warming, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "melting permafrost",
+        "CO2"
+      ],
+      "topic_tag": "plant_role_in_carbon_cycle",
+      "i2v_prompt": "melting permafrost highlights increased atmospheric CO2 levels, slow tilt down"
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "video_id": "X9ZZ6tcxArI",
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "visual_description": "A wide establishing view of a heart illustration with a love letter in the foreground, symbolizing the heart's cultural significance and its role in the circulatory system.",
+      "image_prompt": "A circular landscape scene of a heart illustration with a love letter in the foreground, symbolizing the heart's cultural significance and its role in the circulatory system, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "heart illustration",
+        "love letter"
+      ],
+      "topic_tag": "heart_cultural_and_circulatory_role",
+      "i2v_prompt": "clouds drift past the heart illustration, a gentle breeze causes the love letter to flutter slightly, slow pan right"
+    },
+    {
+      "shot_id": "shot_002",
+      "visual_description": "A close-up view of a heart illustration focusing on the circulatory system, with a love letter in the background, emphasizing the heart's role in blood circulation.",
+      "image_prompt": "A close-up view of a heart illustration focusing on the circulatory system, with a love letter in the background, emphasizing the heart's role in blood circulation, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "heart illustration",
+        "love letter"
+      ],
+      "topic_tag": "heart_cultural_and_circulatory_role",
+      "i2v_prompt": "clouds drift past the detailed heart illustration, a faint shimmer over the love letter in the background, slow tilt up"
+    },
+    {
+      "shot_id": "shot_003",
+      "visual_description": "A wide establishing view of blood vessels and a pressure gauge, illustrating the heart's role in maintaining pressure gradients for efficient blood circulation.",
+      "image_prompt": "A circular landscape scene of blood vessels and a pressure gauge, illustrating the heart's role in maintaining pressure gradients for efficient blood circulation, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "blood vessels",
+        "pressure gauge"
+      ],
+      "topic_tag": "heart_pressure_gradients",
+      "i2v_prompt": "clouds drift past the blood vessels and pressure gauge, a faint shimmer over the landscape, slow pan left"
+    },
+    {
+      "shot_id": "shot_004",
+      "visual_description": "A close-up view of blood vessels and a pressure gauge, focusing on the details of efficient blood circulation throughout the body.",
+      "image_prompt": "A close-up view of blood vessels and a pressure gauge, focusing on the details of efficient blood circulation throughout the body, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "blood vessels",
+        "pressure gauge"
+      ],
+      "topic_tag": "heart_pressure_gradients",
+      "i2v_prompt": "clouds drift past the detailed blood vessels and pressure gauge, a faint shimmer over the background, slow tilt down"
+    },
+    {
+      "shot_id": "shot_005",
+      "visual_description": "A human torso cross-section with a fist-sized heart, illustrating the heart's size and location within the chest cavity.",
+      "image_prompt": "A human torso cross-section with a fist-sized heart, illustrating the heart's size and location within the chest cavity, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "human torso cross-section",
+        "fist-sized heart"
+      ],
+      "topic_tag": "heart_anatomy",
+      "i2v_prompt": "clouds drift past the human torso cross-section, a faint shimmer over the heart illustration, slow push-in"
+    },
+    {
+      "shot_id": "shot_006",
+      "visual_description": "A detailed diagram of the heart's chamber structure and valve animation, illustrating how the chambers and valves regulate blood flow.",
+      "image_prompt": "A detailed diagram of the heart's chamber structure and valve animation, illustrating how the chambers and valves regulate blood flow, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "chamber structure diagram",
+        "valve animation"
+      ],
+      "topic_tag": "heart_structure_and_function",
+      "i2v_prompt": "clouds drift past the detailed heart chamber structure, a faint shimmer over the valves, slow tilt up"
+    },
+    {
+      "shot_id": "shot_007",
+      "visual_description": "A diagram of the heart and lungs, showing the pulmonary circuit and capillary network, illustrating how blood travels from the heart to the lungs and back.",
+      "image_prompt": "A diagram of the heart and lungs, showing the pulmonary circuit and capillary network, illustrating how blood travels from the heart to the lungs and back, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "lungs",
+        "heart",
+        "capillary network"
+      ],
+      "topic_tag": "heart_circulatory_system",
+      "i2v_prompt": "clouds drift past the heart and lungs diagram, a faint shimmer over the pulmonary circuit, slow tilt down"
+    },
+    {
+      "shot_id": "shot_008",
+      "visual_description": "A wide establishing view of an organ system map, illustrating the systemic loop that distributes oxygen-rich blood to the body’s tissues and collects deoxygenated blood.",
+      "image_prompt": "A wide establishing view of an organ system map, illustrating the systemic loop that distributes oxygen-rich blood to the body’s tissues and collects deoxygenated blood, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "organ system map",
+        "artery",
+        "vein"
+      ],
+      "topic_tag": "heart_systemic_loop",
+      "i2v_prompt": "clouds drift past the wide establishing view of the organ system map, a faint shimmer over the systemic loop, slow pan right"
+    },
+    {
+      "shot_id": "shot_009",
+      "visual_description": "A close-up view of an organ system map, focusing on the details of the systemic loop that distributes oxygen-rich blood to the body’s tissues and collects deoxygenated blood.",
+      "image_prompt": "A close-up view of an organ system map, focusing on the details of the systemic loop that distributes oxygen-rich blood to the body’s tissues and collects deoxygenated blood, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "organ system map",
+        "artery",
+        "vein"
+      ],
+      "topic_tag": "heart_systemic_loop",
+      "i2v_prompt": "clouds drift past the close-up view of the organ system map, a faint shimmer over the systemic loop, slow tilt up"
+    },
+    {
+      "shot_id": "shot_010",
+      "visual_description": "A wide establishing view of a sphygmomanometer and blood pressure readings, illustrating the concept of systolic and diastolic blood pressure.",
+      "image_prompt": "A wide establishing view of a sphygmomanometer and blood pressure readings, illustrating the concept of systolic and diastolic blood pressure, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "sphygmomanometer",
+        "blood pressure readings"
+      ],
+      "topic_tag": "blood_pressure_concepts",
+      "i2v_prompt": "clouds drift past the wide establishing view of the sphygmomanometer, a faint shimmer over the blood pressure readings, slow pan left"
+    },
+    {
+      "shot_id": "shot_011",
+      "visual_description": "A close-up detail of a sphygmomanometer showing blood pressure readings.",
+      "image_prompt": "A close-up detail of a sphygmomanometer showing blood pressure readings on a digital screen, stethoscope nearby, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "sphygmomanometer",
+        "blood pressure readings"
+      ],
+      "topic_tag": "blood_pressure_concepts",
+      "i2v_prompt": "clouds drift past the close-up detail of the sphygmomanometer, a faint shimmer over the digital screen, slow tilt down"
+    },
+    {
+      "shot_id": "shot_012",
+      "visual_description": "A wide establishing view of a patient lying on a hospital bed with a stethoscope and ECG monitor.",
+      "image_prompt": "A wide establishing view of a patient lying on a hospital bed with a stethoscope and ECG monitor, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "patient",
+        "stethoscope",
+        "ECG monitor"
+      ],
+      "topic_tag": "blood_pressure_concepts",
+      "i2v_prompt": "clouds drift past the wide establishing view of the patient on the hospital bed, a faint shimmer over the ECG monitor, slow push-in"
+    },
+    {
+      "shot_id": "shot_013",
+      "visual_description": "A close-up detail of a patient lying on a hospital bed with a stethoscope and ECG monitor.",
+      "image_prompt": "A close-up detail of a patient lying on a hospital bed with a stethoscope and ECG monitor, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "patient",
+        "stethoscope",
+        "ECG monitor"
+      ],
+      "topic_tag": "blood_pressure_concepts",
+      "i2v_prompt": "clouds drift past the close-up detail of the patient on the hospital bed, a faint shimmer over the ECG monitor, slow tilt up"
+    }
+  ]
+}

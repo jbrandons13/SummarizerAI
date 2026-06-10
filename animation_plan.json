@@ -1,0 +1,534 @@
+{
+  "policy": "content_aware_animation",
+  "dynamic_keywords": [
+    "water",
+    "lava",
+    "magma",
+    "molten",
+    "wind",
+    "ice",
+    "eros",
+    "weather",
+    "dissolv",
+    "fluid",
+    "flow",
+    "sea",
+    "ocean",
+    "river",
+    "rain",
+    "crystalliz",
+    "melt",
+    "current",
+    "wave",
+    "steam",
+    "smoke",
+    "erupt",
+    "volcan"
+  ],
+  "i2v_shots": [
+    "shot_007",
+    "shot_008",
+    "shot_013",
+    "shot_014",
+    "shot_015",
+    "shot_016",
+    "shot_018",
+    "shot_020",
+    "shot_021",
+    "shot_027",
+    "shot_028",
+    "shot_029",
+    "shot_031"
+  ],
+  "ken_burns_shots": [
+    "shot_001",
+    "shot_002",
+    "shot_003",
+    "shot_004",
+    "shot_005",
+    "shot_006",
+    "shot_009",
+    "shot_010",
+    "shot_011",
+    "shot_012",
+    "shot_017",
+    "shot_019",
+    "shot_022",
+    "shot_023",
+    "shot_024",
+    "shot_025",
+    "shot_026",
+    "shot_030",
+    "shot_032",
+    "shot_033",
+    "shot_034",
+    "shot_035",
+    "shot_036",
+    "shot_037",
+    "shot_038",
+    "shot_039",
+    "shot_040",
+    "shot_041",
+    "shot_042",
+    "shot_043",
+    "shot_044"
+  ],
+  "method_by_shot": {
+    "shot_001": "ken_burns",
+    "shot_002": "ken_burns",
+    "shot_003": "ken_burns",
+    "shot_004": "ken_burns",
+    "shot_005": "ken_burns",
+    "shot_006": "ken_burns",
+    "shot_007": "i2v",
+    "shot_008": "i2v",
+    "shot_009": "ken_burns",
+    "shot_010": "ken_burns",
+    "shot_011": "ken_burns",
+    "shot_012": "ken_burns",
+    "shot_013": "i2v",
+    "shot_014": "i2v",
+    "shot_015": "i2v",
+    "shot_016": "i2v",
+    "shot_017": "ken_burns",
+    "shot_018": "i2v",
+    "shot_019": "ken_burns",
+    "shot_020": "i2v",
+    "shot_021": "i2v",
+    "shot_022": "ken_burns",
+    "shot_023": "ken_burns",
+    "shot_024": "ken_burns",
+    "shot_025": "ken_burns",
+    "shot_026": "ken_burns",
+    "shot_027": "i2v",
+    "shot_028": "i2v",
+    "shot_029": "i2v",
+    "shot_030": "ken_burns",
+    "shot_031": "i2v",
+    "shot_032": "ken_burns",
+    "shot_033": "ken_burns",
+    "shot_034": "ken_burns",
+    "shot_035": "ken_burns",
+    "shot_036": "ken_burns",
+    "shot_037": "ken_burns",
+    "shot_038": "ken_burns",
+    "shot_039": "ken_burns",
+    "shot_040": "ken_burns",
+    "shot_041": "ken_burns",
+    "shot_042": "ken_burns",
+    "shot_043": "ken_burns",
+    "shot_044": "ken_burns"
+  },
+  "rationale_by_shot": {
+    "shot_001": {
+      "entities": [
+        "Los Cuernos del Paine",
+        "mountains",
+        "Oreos"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_002": {
+      "entities": [
+        "rock cycle diagram",
+        "recycling symbol"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_003": {
+      "entities": [
+        "rock formation",
+        "mineral cluster"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_004": {
+      "entities": [
+        "rock formation",
+        "mineral cluster"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_005": {
+      "entities": [
+        "pile of sediment",
+        "sedimentary rock formation"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_006": {
+      "entities": [
+        "pile of sediment",
+        "sedimentary rock formation"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_007": {
+      "entities": [
+        "ancient sea",
+        "mud and sand"
+      ],
+      "method": "i2v",
+      "matched": [
+        "sea"
+      ]
+    },
+    "shot_008": {
+      "entities": [
+        "ancient sea",
+        "mud and sand"
+      ],
+      "method": "i2v",
+      "matched": [
+        "sea"
+      ]
+    },
+    "shot_009": {
+      "entities": [
+        "clastic rock formation",
+        "compact sediment"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_010": {
+      "entities": [
+        "clastic rock formation",
+        "compact sediment"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_011": {
+      "entities": [
+        "shells",
+        "bones",
+        "limestone"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_012": {
+      "entities": [
+        "shells",
+        "bones",
+        "limestone"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_013": {
+      "entities": [
+        "rock salt",
+        "dissolved minerals",
+        "water"
+      ],
+      "method": "i2v",
+      "matched": [
+        "water",
+        "dissolv"
+      ]
+    },
+    "shot_014": {
+      "entities": [
+        "rock salt",
+        "minerals",
+        "water"
+      ],
+      "method": "i2v",
+      "matched": [
+        "water"
+      ]
+    },
+    "shot_015": {
+      "entities": [
+        "molten rock",
+        "igneous rocks",
+        "crystallization"
+      ],
+      "method": "i2v",
+      "matched": [
+        "molten",
+        "crystalliz"
+      ]
+    },
+    "shot_016": {
+      "entities": [
+        "magma",
+        "lava",
+        "igneous rocks"
+      ],
+      "method": "i2v",
+      "matched": [
+        "lava",
+        "magma"
+      ]
+    },
+    "shot_017": {
+      "entities": [
+        "light stripe",
+        "Los Cuernos",
+        "igneous rock"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_018": {
+      "entities": [
+        "magma",
+        "Los Cuernos",
+        "igneous rock"
+      ],
+      "method": "i2v",
+      "matched": [
+        "magma"
+      ]
+    },
+    "shot_019": {
+      "entities": [
+        "metamorphic rocks",
+        "temperature",
+        "pressure"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_020": {
+      "entities": [
+        "metamorphic rocks",
+        "hot fluids",
+        "temperature"
+      ],
+      "method": "i2v",
+      "matched": [
+        "fluid"
+      ]
+    },
+    "shot_021": {
+      "entities": [
+        "metamorphic rocks",
+        "magma"
+      ],
+      "method": "i2v",
+      "matched": [
+        "magma"
+      ]
+    },
+    "shot_022": {
+      "entities": [
+        "sedimentary rock layers",
+        "metamorphic rocks"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_023": {
+      "entities": [
+        "non-foliated metamorphic rocks",
+        "intense heat"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_024": {
+      "entities": [
+        "non-foliated metamorphic rocks",
+        "intense heat"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_025": {
+      "entities": [
+        "igneous rocks",
+        "sedimentary rocks"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_026": {
+      "entities": [
+        "metamorphic rocks",
+        "rock cycle"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_027": {
+      "entities": [
+        "weathering",
+        "erosion"
+      ],
+      "method": "i2v",
+      "matched": [
+        "eros",
+        "weather"
+      ]
+    },
+    "shot_028": {
+      "entities": [
+        "weathering",
+        "erosion"
+      ],
+      "method": "i2v",
+      "matched": [
+        "eros",
+        "weather"
+      ]
+    },
+    "shot_029": {
+      "entities": [
+        "water",
+        "wind",
+        "ice"
+      ],
+      "method": "i2v",
+      "matched": [
+        "water",
+        "wind",
+        "ice"
+      ]
+    },
+    "shot_030": {
+      "entities": [
+        "chemical reactions",
+        "biological processes"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_031": {
+      "entities": [
+        "sediment",
+        "water",
+        "wind"
+      ],
+      "method": "i2v",
+      "matched": [
+        "water",
+        "wind"
+      ]
+    },
+    "shot_032": {
+      "entities": [
+        "sediment",
+        "sedimentary rocks"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_033": {
+      "entities": [
+        "rocks",
+        "formation",
+        "transformation"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_034": {
+      "entities": [
+        "mountains",
+        "canyons",
+        "rock cycle"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_035": {
+      "entities": [
+        "planet Earth",
+        "continuous change"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_036": {
+      "entities": [
+        "planet Earth",
+        "continuous change"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_037": {
+      "entities": [
+        "rock cycle",
+        "geological features"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_038": {
+      "entities": [
+        "mountains",
+        "sedimentary layers",
+        "rock cycle"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_039": {
+      "entities": [
+        "rock cycle",
+        "Earth's surface",
+        "rock types"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_040": {
+      "entities": [
+        "rock types",
+        "rock cycle",
+        "time"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_041": {
+      "entities": [
+        "rock cycle",
+        "recycling"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_042": {
+      "entities": [
+        "rock cycle",
+        "materials"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_043": {
+      "entities": [
+        "rock cycle",
+        "transformation"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    },
+    "shot_044": {
+      "entities": [
+        "rock cycle",
+        "surface shaping"
+      ],
+      "method": "ken_burns",
+      "matched": []
+    }
+  },
+  "counts": {
+    "i2v": 13,
+    "ken_burns": 31,
+    "total": 44
+  },
+  "est_i2v_hours": 3.5
+}

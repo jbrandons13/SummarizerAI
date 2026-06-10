@@ -1,0 +1,9 @@
+| Component | Model Identity / HF Repo / Local Name | Version / Size / Spec |
+| :--- | :--- | :--- |
+| WhisperX | large-v3 | large |
+| Phase 2 LLM | Qwen/Qwen2.5-14B-Instruct-AWQ | 14B AWQ |
+| Kokoro TTS | Kokoro (nari-labs/Dia-1.6B-0626 for dia_model) | Voice: af_heart |
+| SDXL Base | stabilityai/stable-diffusion-xl-base-1.0 | 1.0 |
+| Cartoon LoRA | flat_color_anime_xl_v2.safetensors | v2 |
+| IP-Adapter | h94/IP-Adapter (ip-adapter-plus_sdxl_vit-h.safetensors) | SDXL Plus ViT-H |
+| Wan I2V | wan2.1-flf2v-14b-720p-Q5_K_M.gguf | Wan 2.1 14B 720p (Q5_K_M) |

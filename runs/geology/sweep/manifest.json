@@ -1,0 +1,506 @@
+[
+  {
+    "shot_id": "shot_001",
+    "weight": 0.2,
+    "file": "shot_001_w0.2.png",
+    "path": "runs/geology/sweep/shot_001_w0.2.png"
+  },
+  {
+    "shot_id": "shot_001",
+    "weight": 0.3,
+    "file": "shot_001_w0.3.png",
+    "path": "runs/geology/sweep/shot_001_w0.3.png"
+  },
+  {
+    "shot_id": "shot_001",
+    "weight": 0.4,
+    "file": "shot_001_w0.4.png",
+    "path": "runs/geology/sweep/shot_001_w0.4.png"
+  },
+  {
+    "shot_id": "shot_001",
+    "weight": 0.5,
+    "file": "shot_001_w0.5.png",
+    "path": "runs/geology/sweep/shot_001_w0.5.png"
+  },
+  {
+    "shot_id": "shot_001",
+    "weight": 0.6,
+    "file": "shot_001_w0.6.png",
+    "path": "runs/geology/sweep/shot_001_w0.6.png"
+  },
+  {
+    "shot_id": "shot_001",
+    "weight": 0.8,
+    "file": "shot_001_w0.8.png",
+    "path": "runs/geology/sweep/shot_001_w0.8.png"
+  },
+  {
+    "shot_id": "shot_002",
+    "weight": 0.2,
+    "file": "shot_002_w0.2.png",
+    "path": "runs/geology/sweep/shot_002_w0.2.png"
+  },
+  {
+    "shot_id": "shot_002",
+    "weight": 0.3,
+    "file": "shot_002_w0.3.png",
+    "path": "runs/geology/sweep/shot_002_w0.3.png"
+  },
+  {
+    "shot_id": "shot_002",
+    "weight": 0.4,
+    "file": "shot_002_w0.4.png",
+    "path": "runs/geology/sweep/shot_002_w0.4.png"
+  },
+  {
+    "shot_id": "shot_002",
+    "weight": 0.5,
+    "file": "shot_002_w0.5.png",
+    "path": "runs/geology/sweep/shot_002_w0.5.png"
+  },
+  {
+    "shot_id": "shot_002",
+    "weight": 0.6,
+    "file": "shot_002_w0.6.png",
+    "path": "runs/geology/sweep/shot_002_w0.6.png"
+  },
+  {
+    "shot_id": "shot_002",
+    "weight": 0.8,
+    "file": "shot_002_w0.8.png",
+    "path": "runs/geology/sweep/shot_002_w0.8.png"
+  },
+  {
+    "shot_id": "shot_003",
+    "weight": 0.2,
+    "file": "shot_003_w0.2.png",
+    "path": "runs/geology/sweep/shot_003_w0.2.png"
+  },
+  {
+    "shot_id": "shot_003",
+    "weight": 0.3,
+    "file": "shot_003_w0.3.png",
+    "path": "runs/geology/sweep/shot_003_w0.3.png"
+  },
+  {
+    "shot_id": "shot_003",
+    "weight": 0.4,
+    "file": "shot_003_w0.4.png",
+    "path": "runs/geology/sweep/shot_003_w0.4.png"
+  },
+  {
+    "shot_id": "shot_003",
+    "weight": 0.5,
+    "file": "shot_003_w0.5.png",
+    "path": "runs/geology/sweep/shot_003_w0.5.png"
+  },
+  {
+    "shot_id": "shot_003",
+    "weight": 0.6,
+    "file": "shot_003_w0.6.png",
+    "path": "runs/geology/sweep/shot_003_w0.6.png"
+  },
+  {
+    "shot_id": "shot_003",
+    "weight": 0.8,
+    "file": "shot_003_w0.8.png",
+    "path": "runs/geology/sweep/shot_003_w0.8.png"
+  },
+  {
+    "shot_id": "shot_004",
+    "weight": 0.2,
+    "file": "shot_004_w0.2.png",
+    "path": "runs/geology/sweep/shot_004_w0.2.png"
+  },
+  {
+    "shot_id": "shot_004",
+    "weight": 0.3,
+    "file": "shot_004_w0.3.png",
+    "path": "runs/geology/sweep/shot_004_w0.3.png"
+  },
+  {
+    "shot_id": "shot_004",
+    "weight": 0.4,
+    "file": "shot_004_w0.4.png",
+    "path": "runs/geology/sweep/shot_004_w0.4.png"
+  },
+  {
+    "shot_id": "shot_004",
+    "weight": 0.5,
+    "file": "shot_004_w0.5.png",
+    "path": "runs/geology/sweep/shot_004_w0.5.png"
+  },
+  {
+    "shot_id": "shot_004",
+    "weight": 0.6,
+    "file": "shot_004_w0.6.png",
+    "path": "runs/geology/sweep/shot_004_w0.6.png"
+  },
+  {
+    "shot_id": "shot_004",
+    "weight": 0.8,
+    "file": "shot_004_w0.8.png",
+    "path": "runs/geology/sweep/shot_004_w0.8.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.2,
+    "file": "shot_005_w0.2.png",
+    "path": "runs/geology/sweep/shot_005_w0.2.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.3,
+    "file": "shot_005_w0.3.png",
+    "path": "runs/geology/sweep/shot_005_w0.3.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.4,
+    "file": "shot_005_w0.4.png",
+    "path": "runs/geology/sweep/shot_005_w0.4.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.5,
+    "file": "shot_005_w0.5.png",
+    "path": "runs/geology/sweep/shot_005_w0.5.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.6,
+    "file": "shot_005_w0.6.png",
+    "path": "runs/geology/sweep/shot_005_w0.6.png"
+  },
+  {
+    "shot_id": "shot_005",
+    "weight": 0.8,
+    "file": "shot_005_w0.8.png",
+    "path": "runs/geology/sweep/shot_005_w0.8.png"
+  },
+  {
+    "shot_id": "shot_006",
+    "weight": 0.2,
+    "file": "shot_006_w0.2.png",
+    "path": "runs/geology/sweep/shot_006_w0.2.png"
+  },
+  {
+    "shot_id": "shot_006",
+    "weight": 0.3,
+    "file": "shot_006_w0.3.png",
+    "path": "runs/geology/sweep/shot_006_w0.3.png"
+  },
+  {
+    "shot_id": "shot_006",
+    "weight": 0.4,
+    "file": "shot_006_w0.4.png",
+    "path": "runs/geology/sweep/shot_006_w0.4.png"
+  },
+  {
+    "shot_id": "shot_006",
+    "weight": 0.5,
+    "file": "shot_006_w0.5.png",
+    "path": "runs/geology/sweep/shot_006_w0.5.png"
+  },
+  {
+    "shot_id": "shot_006",
+    "weight": 0.6,
+    "file": "shot_006_w0.6.png",
+    "path": "runs/geology/sweep/shot_006_w0.6.png"
+  },
+  {
+    "shot_id": "shot_006",
+    "weight": 0.8,
+    "file": "shot_006_w0.8.png",
+    "path": "runs/geology/sweep/shot_006_w0.8.png"
+  },
+  {
+    "shot_id": "shot_007",
+    "weight": 0.2,
+    "file": "shot_007_w0.2.png",
+    "path": "runs/geology/sweep/shot_007_w0.2.png"
+  },
+  {
+    "shot_id": "shot_007",
+    "weight": 0.3,
+    "file": "shot_007_w0.3.png",
+    "path": "runs/geology/sweep/shot_007_w0.3.png"
+  },
+  {
+    "shot_id": "shot_007",
+    "weight": 0.4,
+    "file": "shot_007_w0.4.png",
+    "path": "runs/geology/sweep/shot_007_w0.4.png"
+  },
+  {
+    "shot_id": "shot_007",
+    "weight": 0.5,
+    "file": "shot_007_w0.5.png",
+    "path": "runs/geology/sweep/shot_007_w0.5.png"
+  },
+  {
+    "shot_id": "shot_007",
+    "weight": 0.6,
+    "file": "shot_007_w0.6.png",
+    "path": "runs/geology/sweep/shot_007_w0.6.png"
+  },
+  {
+    "shot_id": "shot_007",
+    "weight": 0.8,
+    "file": "shot_007_w0.8.png",
+    "path": "runs/geology/sweep/shot_007_w0.8.png"
+  },
+  {
+    "shot_id": "shot_008",
+    "weight": 0.2,
+    "file": "shot_008_w0.2.png",
+    "path": "runs/geology/sweep/shot_008_w0.2.png"
+  },
+  {
+    "shot_id": "shot_008",
+    "weight": 0.3,
+    "file": "shot_008_w0.3.png",
+    "path": "runs/geology/sweep/shot_008_w0.3.png"
+  },
+  {
+    "shot_id": "shot_008",
+    "weight": 0.4,
+    "file": "shot_008_w0.4.png",
+    "path": "runs/geology/sweep/shot_008_w0.4.png"
+  },
+  {
+    "shot_id": "shot_008",
+    "weight": 0.5,
+    "file": "shot_008_w0.5.png",
+    "path": "runs/geology/sweep/shot_008_w0.5.png"
+  },
+  {
+    "shot_id": "shot_008",
+    "weight": 0.6,
+    "file": "shot_008_w0.6.png",
+    "path": "runs/geology/sweep/shot_008_w0.6.png"
+  },
+  {
+    "shot_id": "shot_008",
+    "weight": 0.8,
+    "file": "shot_008_w0.8.png",
+    "path": "runs/geology/sweep/shot_008_w0.8.png"
+  },
+  {
+    "shot_id": "shot_009",
+    "weight": 0.2,
+    "file": "shot_009_w0.2.png",
+    "path": "runs/geology/sweep/shot_009_w0.2.png"
+  },
+  {
+    "shot_id": "shot_009",
+    "weight": 0.3,
+    "file": "shot_009_w0.3.png",
+    "path": "runs/geology/sweep/shot_009_w0.3.png"
+  },
+  {
+    "shot_id": "shot_009",
+    "weight": 0.4,
+    "file": "shot_009_w0.4.png",
+    "path": "runs/geology/sweep/shot_009_w0.4.png"
+  },
+  {
+    "shot_id": "shot_009",
+    "weight": 0.5,
+    "file": "shot_009_w0.5.png",
+    "path": "runs/geology/sweep/shot_009_w0.5.png"
+  },
+  {
+    "shot_id": "shot_009",
+    "weight": 0.6,
+    "file": "shot_009_w0.6.png",
+    "path": "runs/geology/sweep/shot_009_w0.6.png"
+  },
+  {
+    "shot_id": "shot_009",
+    "weight": 0.8,
+    "file": "shot_009_w0.8.png",
+    "path": "runs/geology/sweep/shot_009_w0.8.png"
+  },
+  {
+    "shot_id": "shot_010",
+    "weight": 0.2,
+    "file": "shot_010_w0.2.png",
+    "path": "runs/geology/sweep/shot_010_w0.2.png"
+  },
+  {
+    "shot_id": "shot_010",
+    "weight": 0.3,
+    "file": "shot_010_w0.3.png",
+    "path": "runs/geology/sweep/shot_010_w0.3.png"
+  },
+  {
+    "shot_id": "shot_010",
+    "weight": 0.4,
+    "file": "shot_010_w0.4.png",
+    "path": "runs/geology/sweep/shot_010_w0.4.png"
+  },
+  {
+    "shot_id": "shot_010",
+    "weight": 0.5,
+    "file": "shot_010_w0.5.png",
+    "path": "runs/geology/sweep/shot_010_w0.5.png"
+  },
+  {
+    "shot_id": "shot_010",
+    "weight": 0.6,
+    "file": "shot_010_w0.6.png",
+    "path": "runs/geology/sweep/shot_010_w0.6.png"
+  },
+  {
+    "shot_id": "shot_010",
+    "weight": 0.8,
+    "file": "shot_010_w0.8.png",
+    "path": "runs/geology/sweep/shot_010_w0.8.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.2,
+    "file": "shot_011_w0.2.png",
+    "path": "runs/geology/sweep/shot_011_w0.2.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.3,
+    "file": "shot_011_w0.3.png",
+    "path": "runs/geology/sweep/shot_011_w0.3.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.4,
+    "file": "shot_011_w0.4.png",
+    "path": "runs/geology/sweep/shot_011_w0.4.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.5,
+    "file": "shot_011_w0.5.png",
+    "path": "runs/geology/sweep/shot_011_w0.5.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.6,
+    "file": "shot_011_w0.6.png",
+    "path": "runs/geology/sweep/shot_011_w0.6.png"
+  },
+  {
+    "shot_id": "shot_011",
+    "weight": 0.8,
+    "file": "shot_011_w0.8.png",
+    "path": "runs/geology/sweep/shot_011_w0.8.png"
+  },
+  {
+    "shot_id": "shot_012",
+    "weight": 0.2,
+    "file": "shot_012_w0.2.png",
+    "path": "runs/geology/sweep/shot_012_w0.2.png"
+  },
+  {
+    "shot_id": "shot_012",
+    "weight": 0.3,
+    "file": "shot_012_w0.3.png",
+    "path": "runs/geology/sweep/shot_012_w0.3.png"
+  },
+  {
+    "shot_id": "shot_012",
+    "weight": 0.4,
+    "file": "shot_012_w0.4.png",
+    "path": "runs/geology/sweep/shot_012_w0.4.png"
+  },
+  {
+    "shot_id": "shot_012",
+    "weight": 0.5,
+    "file": "shot_012_w0.5.png",
+    "path": "runs/geology/sweep/shot_012_w0.5.png"
+  },
+  {
+    "shot_id": "shot_012",
+    "weight": 0.6,
+    "file": "shot_012_w0.6.png",
+    "path": "runs/geology/sweep/shot_012_w0.6.png"
+  },
+  {
+    "shot_id": "shot_012",
+    "weight": 0.8,
+    "file": "shot_012_w0.8.png",
+    "path": "runs/geology/sweep/shot_012_w0.8.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.2,
+    "file": "shot_013_w0.2.png",
+    "path": "runs/geology/sweep/shot_013_w0.2.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.3,
+    "file": "shot_013_w0.3.png",
+    "path": "runs/geology/sweep/shot_013_w0.3.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.4,
+    "file": "shot_013_w0.4.png",
+    "path": "runs/geology/sweep/shot_013_w0.4.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.5,
+    "file": "shot_013_w0.5.png",
+    "path": "runs/geology/sweep/shot_013_w0.5.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.6,
+    "file": "shot_013_w0.6.png",
+    "path": "runs/geology/sweep/shot_013_w0.6.png"
+  },
+  {
+    "shot_id": "shot_013",
+    "weight": 0.8,
+    "file": "shot_013_w0.8.png",
+    "path": "runs/geology/sweep/shot_013_w0.8.png"
+  },
+  {
+    "shot_id": "shot_014",
+    "weight": 0.2,
+    "file": "shot_014_w0.2.png",
+    "path": "runs/geology/sweep/shot_014_w0.2.png"
+  },
+  {
+    "shot_id": "shot_014",
+    "weight": 0.3,
+    "file": "shot_014_w0.3.png",
+    "path": "runs/geology/sweep/shot_014_w0.3.png"
+  },
+  {
+    "shot_id": "shot_014",
+    "weight": 0.4,
+    "file": "shot_014_w0.4.png",
+    "path": "runs/geology/sweep/shot_014_w0.4.png"
+  },
+  {
+    "shot_id": "shot_014",
+    "weight": 0.5,
+    "file": "shot_014_w0.5.png",
+    "path": "runs/geology/sweep/shot_014_w0.5.png"
+  },
+  {
+    "shot_id": "shot_014",
+    "weight": 0.6,
+    "file": "shot_014_w0.6.png",
+    "path": "runs/geology/sweep/shot_014_w0.6.png"
+  },
+  {
+    "shot_id": "shot_014",
+    "weight": 0.8,
+    "file": "shot_014_w0.8.png",
+    "path": "runs/geology/sweep/shot_014_w0.8.png"
+  }
+]

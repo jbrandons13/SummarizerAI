@@ -1,0 +1,25 @@
+concept_text,"a cartoon illustration of a smartphone"
+tau,0.7
+
+shot,adaptive_w*,content_at_w*(sim_to_own),concept_at_w*(CLIP)
+"shot_001",1,0.9132,0.2648
+"shot_002",0.1,0.7890,0.2498
+"shot_003",0.2,0.7418,0.1671
+"shot_004",0.1,0.8069,0.2809
+"shot_005",0.3,0.7560,0.2708
+"shot_006",0.1,0.8431,0.1838
+"shot_007",0,1.0000,0.2011
+"shot_008",0.1,0.8375,0.2421
+"shot_009",0.1,0.7298,0.1641
+"shot_010",0.1,0.8652,0.2293
+"shot_011",0.1,0.7386,0.2857
+"shot_012",0.1,0.9006,0.1714
+"shot_013",0.2,0.7342,0.2357
+"shot_014",0.2,0.8241,0.2413
+"shot_015",0.2,0.8286,0.2419
+
+scheme,mean_concept(CLIP),mean_content(sim_to_own)
+"adaptive",0.2287,0.8206
+"fixed_w0.2",0.2310,0.6293
+"fixed_w0.4",0.2379,0.4314
+"fixed_w0.6",0.2483,0.4041

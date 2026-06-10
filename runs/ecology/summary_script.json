@@ -1,0 +1,112 @@
+{
+    "video_id": "2D7hZpIYlCA_hydrologic-carbon-cycles-crash-course-ecology",
+    "target_duration": 240,
+    "style": "informative",
+    "backend_used": "local",
+    "sentences": [
+        {
+            "id": 0,
+            "text": "The Earth operates through interconnected cycles involving matter and energy.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                0.031,
+                13.93
+            ],
+            "keywords": [
+                "two-year-old child playing in water",
+                "ocean waves"
+            ]
+        },
+        {
+            "id": 1,
+            "text": "Water continuously circulates between the atmosphere, land, and oceans, forming the hydrological cycle.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                13.93,
+                27.515
+            ],
+            "keywords": [
+                "hydrologic cycle diagram",
+                "water droplet"
+            ]
+        },
+        {
+            "id": 2,
+            "text": "Evaporation, condensation, and precipitation are key processes in moving water through the environment.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                27.515,
+                40.24
+            ],
+            "keywords": [
+                "evaporation illustration",
+                "cloud formation"
+            ]
+        },
+        {
+            "id": 3,
+            "text": "Carbon cycles through ecosystems, including plants, animals, and geological formations.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                40.24,
+                53.014
+            ],
+            "keywords": [
+                "carbon cycle infographic",
+                "plant absorbing CO2"
+            ]
+        },
+        {
+            "id": 4,
+            "text": "Plants play a crucial role in the carbon cycle by converting atmospheric CO2 into biomass.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                53.014,
+                67.701
+            ],
+            "keywords": [
+                "photosynthesis animation",
+                "tree growing"
+            ]
+        },
+        {
+            "id": 5,
+            "text": "Fossil fuels represent ancient carbon deposits formed under pressure over millions of years.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                67.701,
+                84.534
+            ],
+            "keywords": [
+                "fossil fuel formation illustration",
+                "coal mine"
+            ]
+        },
+        {
+            "id": 6,
+            "text": "Human activities, particularly burning fossil fuels, accelerate the release of stored carbon into the atmosphere.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                84.534,
+                102.028
+            ],
+            "keywords": [
+                "industrial smokestack emitting CO2",
+                "oil rig"
+            ]
+        },
+        {
+            "id": 7,
+            "text": "Permafrost melting releases additional carbon, contributing to increased atmospheric CO2 levels and global warming.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                102.028,
+                120.021
+            ],
+            "keywords": [
+                "melting permafrost image",
+                "greenhouse gases"
+            ]
+        }
+    ]
+}

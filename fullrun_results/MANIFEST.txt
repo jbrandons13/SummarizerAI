@@ -1,0 +1,36 @@
+=== FOLDER STRUCTURE & FILES ===
+
+[data/]
+- V1_Geology_collapse_metrics.csv : Raw DINOv2 vs CLIP metrics for V1 (fine grid)
+- V1_Geology_adaptive_anchor.csv : Adaptive tau selection and mean metrics for V1
+- V2_Ecology_collapse_metrics.csv : Raw DINOv2 vs CLIP metrics for V2 (coarse grid)
+- V2_Ecology_adaptive_anchor.csv : Adaptive tau selection and mean metrics for V2
+- V3_Sun_collapse_metrics.csv : Raw DINOv2 vs CLIP metrics for V3 (fine grid)
+- V3_Sun_adaptive_anchor.csv : Adaptive tau selection and mean metrics for V3
+- V4_Heart_collapse_metrics.csv : Raw DINOv2 vs CLIP metrics for V4 (fine grid)
+- V4_Heart_adaptive_anchor.csv : Adaptive tau selection and mean metrics for V4
+- V5_iPhone_collapse_metrics.csv : Raw DINOv2 vs CLIP metrics for V5 (fine grid)
+- V5_iPhone_adaptive_anchor.csv : Adaptive tau selection and mean metrics for V5
+
+[figures/]
+- V1_Geology_collapse_curve.png : Reward-collapse frontier curve for V1
+- V1_Geology_adaptive_anchor.png : Visual per-shot mapping of chosen w* (DACA vs Fixed) for V1
+- V1_Geology_adaptive_grid.png : Qualitative grid visualization of DACA outputs for V1
+- V2_Ecology_collapse_curve.png : Reward-collapse frontier curve for V2
+- V2_Ecology_adaptive_anchor.png : Visual per-shot mapping of chosen w* (DACA vs Fixed) for V2
+- V2_Ecology_adaptive_grid.png : Qualitative grid visualization of DACA outputs for V2
+- V3_Sun_collapse_curve.png : Reward-collapse frontier curve for V3
+- V3_Sun_adaptive_anchor.png : Visual per-shot mapping of chosen w* (DACA vs Fixed) for V3
+- V3_Sun_adaptive_grid.png : Qualitative grid visualization of DACA outputs for V3
+- V4_Heart_collapse_curve.png : Reward-collapse frontier curve for V4
+- V4_Heart_adaptive_anchor.png : Visual per-shot mapping of chosen w* (DACA vs Fixed) for V4
+- V4_Heart_adaptive_grid.png : Qualitative grid visualization of DACA outputs for V4
+- V5_iPhone_collapse_curve.png : Reward-collapse frontier curve for V5 (shows contrast control collapse)
+- V5_iPhone_adaptive_anchor.png : Visual per-shot mapping of chosen w* for V5
+- V5_iPhone_adaptive_grid.png : Qualitative grid visualization of outputs for V5
+
+FILE YANG HARUS DIKIRIM KE CLAUDE:
+1. data/V3_Sun_adaptive_anchor.csv
+2. data/V4_Heart_adaptive_anchor.csv
+3. data/V5_iPhone_adaptive_anchor.csv
+(Kirimkan ketiganya untuk diekstrak jadi data tabel DACA vs Fixed-w oleh Claude)

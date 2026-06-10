@@ -1,0 +1,9 @@
+CONTENT FIDELITY (A/B):
+Which image more accurately and completely depicts: [caption]? Answer A or B only.
+Counterbalancing applied: Image A and B randomly swapped between DACA and high-w, recorded properly.
+
+SAME-CONCEPT RATE:
+Do these two images depict the same concept/topic? Yes or No.
+
+COPY FLAG:
+Is this image essentially a copy of this reference (near-identical content/composition)? Yes or No.

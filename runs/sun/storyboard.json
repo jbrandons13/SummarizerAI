@@ -1,0 +1,197 @@
+{
+  "video_id": "b22HKFMIfWo",
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "visual_description": "A wide view of the night sky, with the Sun shining brightly in the center, contrasting with other stars.",
+      "image_prompt": "A circular landscape scene of the night sky with the Sun shining brightly in the center, contrasting with other stars, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "Sun",
+        "night sky",
+        "stars"
+      ],
+      "topic_tag": "sun_vs_stars",
+      "i2v_prompt": "clouds drift across the night sky, faint atmospheric glow, slow tilt up"
+    },
+    {
+      "shot_id": "shot_002",
+      "visual_description": "A close-up view of the Sun, highlighting its brightness and proximity compared to other stars in the background.",
+      "image_prompt": "A close-up view of the Sun, highlighting its brightness and proximity compared to other stars in the background, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "Sun",
+        "brightness",
+        "stars"
+      ],
+      "topic_tag": "sun_vs_stars",
+      "i2v_prompt": "faint ambient light shimmer, slow pan right"
+    },
+    {
+      "shot_id": "shot_003",
+      "visual_description": "A wide view of astronomers observing stars, illustrating the scientific insight required to understand the Sun as a star.",
+      "image_prompt": "A wide view of astronomers observing stars, illustrating the scientific insight required to understand the Sun as a star, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "astronomers",
+        "stars",
+        "insight"
+      ],
+      "topic_tag": "scientific_insight",
+      "i2v_prompt": "cloud shadows move across the astronomers, slow pan left"
+    },
+    {
+      "shot_id": "shot_004",
+      "visual_description": "A close-up view of a chart or diagram illustrating the recognition of the Sun as a scaled-up version of distant stars.",
+      "image_prompt": "A close-up view of a chart or diagram illustrating the recognition of the Sun as a scaled-up version of distant stars, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "chart",
+        "Sun",
+        "stars"
+      ],
+      "topic_tag": "scientific_insight",
+      "i2v_prompt": "clouds drift past the diagram, slow tilt down"
+    },
+    {
+      "shot_id": "shot_005",
+      "visual_description": "A wide view of a size comparison chart, with the Sun highlighted, showing it is not an average star.",
+      "image_prompt": "A wide view of a size comparison chart, with the Sun highlighted, showing it is not an average star, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "size comparison chart",
+        "Sun",
+        "stars"
+      ],
+      "topic_tag": "sun_size_comparison",
+      "i2v_prompt": "cloud shadows move across the size comparison chart, slow pan right"
+    },
+    {
+      "shot_id": "shot_006",
+      "visual_description": "A close-up view of a size comparison chart, with the Sun highlighted, emphasizing its position within the top 10% of stellar sizes and masses.",
+      "image_prompt": "A close-up view of a size comparison chart, with the Sun highlighted, emphasizing its position within the top 10% of stellar sizes and masses, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "size comparison chart",
+        "Sun",
+        "stellar sizes"
+      ],
+      "topic_tag": "sun_size_comparison",
+      "i2v_prompt": "clouds drift past the chart, slow tilt up"
+    },
+    {
+      "shot_id": "shot_007",
+      "visual_description": "A wide view of a solar system diagram, with the Sun in the central position, illustrating its dominance in the solar system.",
+      "image_prompt": "A wide view of a solar system diagram, with the Sun in the central position, illustrating its dominance in the solar system, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "solar system diagram",
+        "Sun",
+        "planets"
+      ],
+      "topic_tag": "sun_dominance",
+      "i2v_prompt": "cloud shadows move across the solar system diagram, slow pan left"
+    },
+    {
+      "shot_id": "shot_008",
+      "visual_description": "A close-up view of a solar system diagram, with the Sun in the central position, emphasizing its influence on planets and asteroids.",
+      "image_prompt": "A close-up view of a solar system diagram, with the Sun in the central position, emphasizing its influence on planets and asteroids, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "solar system diagram",
+        "Sun",
+        "planets"
+      ],
+      "topic_tag": "sun_dominance",
+      "i2v_prompt": "clouds drift past the central Sun, slow tilt down"
+    },
+    {
+      "shot_id": "shot_009",
+      "visual_description": "A wide view of a nuclear fusion animation, illustrating the process of converting hydrogen into helium in the Sun's core.",
+      "image_prompt": "A wide view of a nuclear fusion animation, illustrating the process of converting hydrogen into helium in the Sun's core, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "nuclear fusion animation",
+        "hydrogen",
+        "helium"
+      ],
+      "topic_tag": "nuclear_fusion",
+      "i2v_prompt": "clouds drift past the nuclear fusion animation, slow tilt up"
+    },
+    {
+      "shot_id": "shot_010",
+      "visual_description": "A close-up view of a nuclear fusion animation, highlighting the proton-proton chain reaction and the release of enormous amounts of energy.",
+      "image_prompt": "A close-up view of a nuclear fusion animation, highlighting the proton-proton chain reaction and the release of enormous amounts of energy, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "nuclear fusion animation",
+        "proton-proton chain reaction",
+        "energy"
+      ],
+      "topic_tag": "nuclear_fusion",
+      "i2v_prompt": "cloud shadows move across the nuclear fusion animation, slow pan right"
+    },
+    {
+      "shot_id": "shot_011",
+      "visual_description": "A wide view of an explosion simulation representing the Sun's nuclear fusion process, converting hydrogen into helium.",
+      "image_prompt": "A circular landscape scene of the Sun undergoing nuclear fusion, transforming hydrogen into helium, with an explosion simulation representing energy release, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "Sun",
+        "explosion",
+        "nuclear fusion"
+      ],
+      "topic_tag": "nuclear_fusion",
+      "i2v_prompt": "clouds drift past the Sun undergoing fusion, slow tilt down"
+    },
+    {
+      "shot_id": "shot_012",
+      "visual_description": "A close-up view of an explosion simulation representing the Sun's nuclear fusion process, converting hydrogen into helium.",
+      "image_prompt": "A close-up view of an explosion simulation representing the Sun's nuclear fusion process, converting hydrogen into helium, with an explosion simulation representing energy release, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "explosion",
+        "nuclear fusion",
+        "helium"
+      ],
+      "topic_tag": "nuclear_fusion",
+      "i2v_prompt": "cloud shadows move across the explosion simulation, slow pan left"
+    },
+    {
+      "shot_id": "shot_013",
+      "visual_description": "A wide view of light traveling through various layers of the Sun, illustrating the journey of solar energy.",
+      "image_prompt": "A circular landscape scene of light traveling through various layers of the Sun, illustrating the journey of solar energy, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "light",
+        "layers of the Sun",
+        "solar energy"
+      ],
+      "topic_tag": "solar_energy_travel",
+      "i2v_prompt": "clouds drift past the layers of the Sun, slow tilt up"
+    },
+    {
+      "shot_id": "shot_014",
+      "visual_description": "A close-up view of light traveling through various layers of the Sun, illustrating the journey of solar energy.",
+      "image_prompt": "A close-up view of light traveling through various layers of the Sun, illustrating the journey of solar energy, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "light",
+        "layers of the Sun",
+        "solar energy"
+      ],
+      "topic_tag": "solar_energy_travel",
+      "i2v_prompt": "cloud shadows move across the layers of the Sun, slow pan right"
+    },
+    {
+      "shot_id": "shot_015",
+      "visual_description": "A wide view of the Sun's magnetic fields generating auroras and other phenomena.",
+      "image_prompt": "A circular landscape scene of the Sun's magnetic fields generating auroras and other phenomena, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "Sun",
+        "magnetic fields",
+        "auroras"
+      ],
+      "topic_tag": "solar_magnetic_fields",
+      "i2v_prompt": "clouds drift past the Sun's magnetic fields, slow tilt down"
+    },
+    {
+      "shot_id": "shot_016",
+      "visual_description": "A close-up view of the Sun's magnetic fields generating auroras and other phenomena.",
+      "image_prompt": "A close-up view of the Sun's magnetic fields generating auroras and other phenomena, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "magnetic fields",
+        "auroras",
+        "solar flares"
+      ],
+      "topic_tag": "solar_magnetic_fields",
+      "i2v_prompt": "cloud shadows move across the magnetic fields, slow pan left"
+    }
+  ]
+}

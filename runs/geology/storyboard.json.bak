@@ -1,0 +1,173 @@
+{
+  "video_id": "lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge",
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "visual_description": "A panoramic view of Los Cuernos del Paine in Chile, showcasing the striking Oreo-like mountains that attract tourists.",
+      "image_prompt": "A panoramic view of Los Cuernos del Paine in Chile, showcasing the striking Oreo-like mountains that attract tourists, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "Los Cuernos del Paine",
+        "mountains",
+        "tourists"
+      ],
+      "topic_tag": "landscape_attraction",
+      "i2v_prompt": "clouds drift past the Oreo-like mountains of Los Cuernos del Paine, slow pan right"
+    },
+    {
+      "shot_id": "shot_002",
+      "visual_description": "An animated sequence illustrating the rock cycle, showing how rocks transform and change identities over time.",
+      "image_prompt": "An animated sequence illustrating the rock cycle, showing how rocks transform and change identities over time, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "rock cycle",
+        "rocks",
+        "transformation"
+      ],
+      "topic_tag": "rock_cycle_overview",
+      "i2v_prompt": "slow camera push-in, faint ambient light shimmer"
+    },
+    {
+      "shot_id": "shot_003",
+      "visual_description": "A wide establishing view of sediment layers accumulating over time, forming sedimentary rocks.",
+      "image_prompt": "A wide establishing view of sediment layers accumulating over time, forming sedimentary rocks, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "sedimentary rocks",
+        "sediment layers",
+        "accumulation"
+      ],
+      "topic_tag": "sedimentary_rock_formation",
+      "i2v_prompt": "clouds drift across the sediment layers, slow tilt up"
+    },
+    {
+      "shot_id": "shot_004",
+      "visual_description": "A close-up view of compacted sediment layers, illustrating the process of sediment accumulation over millennia.",
+      "image_prompt": "A close-up view of compacted sediment layers, illustrating the process of sediment accumulation over millennia, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "sedimentary rocks",
+        "sediment layers",
+        "accumulation"
+      ],
+      "topic_tag": "sedimentary_rock_formation",
+      "i2v_prompt": "clouds drift past the compacted sediment layers, slow tilt down"
+    },
+    {
+      "shot_id": "shot_005",
+      "visual_description": "A wide establishing view of molten magma flowing and cooling to form distinctive igneous rock formations.",
+      "image_prompt": "A wide establishing view of molten magma flowing and cooling to form distinctive igneous rock formations, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "igneous rocks",
+        "magma",
+        "cooling"
+      ],
+      "topic_tag": "igneous_rock_formation",
+      "i2v_prompt": "heat haze shimmers over the molten magma, slow pan left"
+    },
+    {
+      "shot_id": "shot_006",
+      "visual_description": "A close-up view of the light stripe on Los Cuernos, illustrating the formation of igneous rocks from cooling magma.",
+      "image_prompt": "A close-up view of the light stripe on Los Cuernos, illustrating the formation of igneous rocks from cooling magma, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "igneous rocks",
+        "magma",
+        "cooling"
+      ],
+      "topic_tag": "igneous_rock_formation",
+      "i2v_prompt": "light glints off the cooling magma stripe on Los Cuernos, slow tilt up"
+    },
+    {
+      "shot_id": "shot_007",
+      "visual_description": "A wide establishing view of metamorphic rocks emerging from existing rocks, transformed by high temperatures and pressures.",
+      "image_prompt": "A wide establishing view of metamorphic rocks emerging from existing rocks, transformed by high temperatures and pressures, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "metamorphic rocks",
+        "existing rocks",
+        "high-pressure environment"
+      ],
+      "topic_tag": "metamorphic_rock_formation",
+      "i2v_prompt": "clouds drift past the metamorphic rocks, slow pan right"
+    },
+    {
+      "shot_id": "shot_008",
+      "visual_description": "A close-up view of metamorphic rocks, illustrating the transformation process under high temperatures and pressures.",
+      "image_prompt": "A close-up view of metamorphic rocks, illustrating the transformation process under high temperatures and pressures, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "metamorphic rocks",
+        "existing rocks",
+        "high-pressure environment"
+      ],
+      "topic_tag": "metamorphic_rock_formation",
+      "i2v_prompt": "clouds drift past the transformed metamorphic rocks, slow tilt down"
+    },
+    {
+      "shot_id": "shot_009",
+      "visual_description": "A wide establishing view of the weathering process, showing how rocks break down into smaller pieces.",
+      "image_prompt": "A wide establishing view of the weathering process, showing how rocks break down into smaller pieces, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "weathering",
+        "rocks",
+        "broken rock fragments"
+      ],
+      "topic_tag": "weathering_process",
+      "i2v_prompt": "clouds drift past the weathered rocks, slow pan left"
+    },
+    {
+      "shot_id": "shot_010",
+      "visual_description": "A close-up view of broken rock fragments, illustrating the continuous rock cycle through weathering.",
+      "image_prompt": "A close-up view of broken rock fragments, illustrating the continuous rock cycle through weathering, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "weathering",
+        "rocks",
+        "broken rock fragments"
+      ],
+      "topic_tag": "weathering_process",
+      "i2v_prompt": "clouds drift past the broken rock fragments, slow tilt up"
+    },
+    {
+      "shot_id": "shot_011",
+      "visual_description": "A wide view of a landscape showing the effects of erosion, with weathered material being transported and shaping the contours of the land.",
+      "image_prompt": "A wide landscape scene showing the effects of erosion, with weathered material being transported and shaping the contours of the land, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "landscape",
+        "erosion",
+        "weathered material"
+      ],
+      "topic_tag": "weathering_process",
+      "i2v_prompt": "clouds drift past the eroded landscape, slow pan right"
+    },
+    {
+      "shot_id": "shot_012",
+      "visual_description": "A close-up view of a specific area of the landscape, highlighting the transport of weathered material and the resulting changes in the landscape.",
+      "image_prompt": "A close-up view of a specific area of the landscape, highlighting the transport of weathered material and the resulting changes in the landscape, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "landscape",
+        "weathered material",
+        "transport"
+      ],
+      "topic_tag": "weathering_process",
+      "i2v_prompt": "clouds drift past the specific area of the landscape, slow tilt down"
+    },
+    {
+      "shot_id": "shot_013",
+      "visual_description": "A wide view of the Earth, showing the global geological map and the various rock formations and processes that shape our planet.",
+      "image_prompt": "A wide view of the Earth, showing the global geological map and the various rock formations and processes that shape our planet, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "Earth",
+        "geological map",
+        "rock formations"
+      ],
+      "topic_tag": "global_geological_map",
+      "i2v_prompt": "clouds drift across the global geological map, slow pan left"
+    },
+    {
+      "shot_id": "shot_014",
+      "visual_description": "A close-up view of a specific area on the global geological map, highlighting the processes that shape the Earth's surface.",
+      "image_prompt": "A close-up view of a specific area on the global geological map, highlighting the processes that shape the Earth's surface, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "geological map",
+        "rock formations",
+        "processes"
+      ],
+      "topic_tag": "global_geological_map",
+      "i2v_prompt": "clouds drift past the specific area on the global geological map, slow tilt up"
+    }
+  ]
+}

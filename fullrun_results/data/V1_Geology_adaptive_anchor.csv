@@ -1,0 +1,13 @@
+concept_text,"a colorful cartoon illustration of rocks, rocky terrain, boulders and stones"
+tau,0.7
+
+shot,adaptive_w*,content_at_w*(sim_to_own),concept_at_w*(CLIP)
+"shot_005",0.2,0.8865,0.3045
+"shot_011",0.3,0.7441,0.3409
+"shot_013",0.5,0.7390,0.3706
+
+scheme,mean_concept(CLIP),mean_content(sim_to_own)
+"adaptive",0.3386,0.7899
+"fixed_w0.2",0.3265,0.8574
+"fixed_w0.4",0.3459,0.6559
+"fixed_w0.6",0.3718,0.4859

@@ -1,0 +1,13 @@
+=== FOLDER STRUCTURE & FILES ===
+
+[addon_results/]
+- runtime_vram.csv : Profiling data log showing wall-clock minutes and peak VRAM (GB) for Phase 1-5 (Extrapolated for 16-shots for P4 and P5 based on representative V3 clip).
+- runtime_info.txt : Metadata log describing GPU setup (RTX 3090 24GB), single-w extrapolation methodology, and tool logic used for profiling.
+- vlm_questions.txt : Verbatim VLM prompts used for A/B testing Content Fidelity, Same-Concept Rate, and Copy Flag checks.
+- vlm_model.txt : Details of the local judge VLM used (Qwen/Qwen2.5-VL-7B-Instruct).
+- vlm_results_aggregate.csv : Final win-rate scores per video. Note: V1/V2 yielded 0 shots evaluated because their raw outputs were archived in the intermediate cache preventing a direct path mapping, but V3, V4, and V5 successfully processed 43 pairs. DACA strictly won in Content Fidelity across all valid videos.
+
+FILE YANG HARUS DIKIRIM KE CLAUDE:
+1. addon_results/runtime_vram.csv
+2. addon_results/vlm_results_aggregate.csv
+(Kirimkan keduanya untuk melengkapi tabel evaluasi thesis)

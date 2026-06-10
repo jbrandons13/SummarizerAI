@@ -1,0 +1,180 @@
+{
+  "video_id": "MRtg6A1f2Ko",
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "visual_description": "A wide establishing view of a person holding an iPhone 16, showcasing the overall design and minor physical changes.",
+      "image_prompt": "A person holding an iPhone 16 in a circular landscape scene, showcasing the overall design and minor physical changes, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16",
+        "person",
+        "smartphone design"
+      ],
+      "topic_tag": "ai_feature_highlights",
+      "i2v_prompt": "clouds drift past the circular landscape, slow pan right"
+    },
+    {
+      "shot_id": "shot_002",
+      "visual_description": "A different angle showing the iPhone 16 with a focus on the new A.I. feature highlights.",
+      "image_prompt": "A person using an iPhone 16 in a circular landscape scene, focusing on the new A.I. feature highlights, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16",
+        "A.I. feature highlights",
+        "person"
+      ],
+      "topic_tag": "ai_feature_highlights",
+      "i2v_prompt": "clouds drift past the circular landscape, slow pan left"
+    },
+    {
+      "shot_id": "shot_003",
+      "visual_description": "A close-up view of the iPhone 16, highlighting the new A.I. features in detail.",
+      "image_prompt": "A close-up view of an iPhone 16 in a circular landscape scene, highlighting the new A.I. features in detail, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16",
+        "A.I. feature highlights",
+        "close-up detail"
+      ],
+      "topic_tag": "ai_feature_highlights",
+      "i2v_prompt": "clouds drift past the circular landscape, slow tilt up"
+    },
+    {
+      "shot_id": "shot_004",
+      "visual_description": "A circular landscape scene of a smartphone with a charging brick, emphasizing improved battery life and faster charging capabilities.",
+      "image_prompt": "A circular landscape scene of a smartphone with a charging brick, emphasizing improved battery life and faster charging capabilities, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "smartphone",
+        "charging brick",
+        "battery life improvement"
+      ],
+      "topic_tag": "charging_brick_battery_life",
+      "i2v_prompt": "clouds drift past the circular landscape, slow tilt down"
+    },
+    {
+      "shot_id": "shot_005",
+      "visual_description": "A circular landscape scene of a person holding an iPhone 16, showcasing the new camera control button and enhanced manual control options.",
+      "image_prompt": "A person holding an iPhone 16 in a circular landscape scene, showcasing the new camera control button and enhanced manual control options, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16",
+        "camera control button",
+        "manual control options"
+      ],
+      "topic_tag": "camera_control_button",
+      "i2v_prompt": "clouds drift past the circular landscape, slow push-in"
+    },
+    {
+      "shot_id": "shot_006",
+      "visual_description": "A wide establishing view of the iPhone 16 Pro model, highlighting the upgraded cameras and improved low-light performance.",
+      "image_prompt": "A wide establishing view of the iPhone 16 Pro model in a circular landscape scene, highlighting the upgraded cameras and improved low-light performance, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16 Pro",
+        "cameras upgrade",
+        "low-light performance"
+      ],
+      "topic_tag": "cameras_upgrade_pro_model",
+      "i2v_prompt": "clouds drift past the circular landscape, slow pan right"
+    },
+    {
+      "shot_id": "shot_007",
+      "visual_description": "A close-up view of the iPhone 16 Pro model, focusing on the upgraded cameras and improved low-light performance.",
+      "image_prompt": "A close-up view of the iPhone 16 Pro model in a circular landscape scene, focusing on the upgraded cameras and improved low-light performance, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16 Pro",
+        "cameras upgrade",
+        "low-light performance"
+      ],
+      "topic_tag": "cameras_upgrade_pro_model",
+      "i2v_prompt": "clouds drift past the circular landscape, slow pan left"
+    },
+    {
+      "shot_id": "shot_008",
+      "visual_description": "A wide establishing view of a person holding an iPhone 16, highlighting the marketing focus on A.I. features and the lack of promised functionalities.",
+      "image_prompt": "A person holding an iPhone 16 in a circular landscape scene, highlighting the marketing focus on A.I. features and the lack of promised functionalities, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16",
+        "A.I. feature highlights",
+        "promised functionalities"
+      ],
+      "topic_tag": "marketing_discrepancy",
+      "i2v_prompt": "clouds drift past the circular landscape, slow tilt up"
+    },
+    {
+      "shot_id": "shot_009",
+      "visual_description": "A close-up view of the iPhone 16, focusing on the lack of promised functionalities despite the marketing focus on A.I. features.",
+      "image_prompt": "A close-up view of the iPhone 16 in a circular landscape scene, focusing on the lack of promised functionalities despite the marketing focus on A.I. features, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16",
+        "A.I. feature highlights",
+        "promised functionalities"
+      ],
+      "topic_tag": "marketing_discrepancy",
+      "i2v_prompt": "clouds drift past the circular landscape, slow tilt down"
+    },
+    {
+      "shot_id": "shot_010",
+      "visual_description": "A wide establishing view of a person holding an iPhone 16, recommending the purchase for users of older models.",
+      "image_prompt": "A person holding an iPhone 16 in a circular landscape scene, recommending the purchase for users of older models, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16",
+        "older models",
+        "recommendation"
+      ],
+      "topic_tag": "upgrade_advice",
+      "i2v_prompt": "clouds drift past the circular landscape, slow push-in"
+    },
+    {
+      "shot_id": "shot_011",
+      "visual_description": "A close-up view of an older model smartphone, highlighting its outdated features.",
+      "image_prompt": "A close-up view of an older model smartphone with outdated features, highlighting the need for an upgrade, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "smartphone",
+        "outdated features"
+      ],
+      "topic_tag": "upgrade_advice",
+      "i2v_prompt": "clouds drift past the circular landscape, slow pan right"
+    },
+    {
+      "shot_id": "shot_012",
+      "visual_description": "A wide establishing view of a serious photographer using an iPhone 16 Pro.",
+      "image_prompt": "A wide establishing view of a serious photographer using an iPhone 16 Pro, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "serious photographer",
+        "iPhone 16 Pro"
+      ],
+      "topic_tag": "notable_improvements",
+      "i2v_prompt": "clouds drift past the circular landscape, slow pan left"
+    },
+    {
+      "shot_id": "shot_013",
+      "visual_description": "A close-up view of the iPhone 16 Pro, showcasing its advanced camera features.",
+      "image_prompt": "A close-up view of the iPhone 16 Pro showcasing its advanced camera features, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "iPhone 16 Pro",
+        "advanced camera features"
+      ],
+      "topic_tag": "notable_improvements",
+      "i2v_prompt": "clouds drift past the circular landscape, slow tilt up"
+    },
+    {
+      "shot_id": "shot_014",
+      "visual_description": "A wide establishing view of the new iPhones, highlighting their incremental advancements.",
+      "image_prompt": "A wide establishing view of the new iPhones highlighting their incremental advancements, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "new iPhones",
+        "incremental advancements"
+      ],
+      "topic_tag": "incremental_advancements",
+      "i2v_prompt": "clouds drift past the circular landscape, slow tilt down"
+    },
+    {
+      "shot_id": "shot_015",
+      "visual_description": "A close-up view of the new iPhones, emphasizing potential future enhancements through software updates.",
+      "image_prompt": "A close-up view of the new iPhones emphasizing potential future enhancements through software updates, flat 2D educational vector scene, vivid colors",
+      "key_entities": [
+        "new iPhones",
+        "software updates"
+      ],
+      "topic_tag": "incremental_advancements",
+      "i2v_prompt": "clouds drift past the circular landscape, slow push-in"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+    "video_id": "X9ZZ6tcxArI",
+    "target_duration": 240,
+    "style": "informative",
+    "backend_used": "local",
+    "sentences": [
+        {
+            "id": 0,
+            "text": "The heart, celebrated in culture, is primarily recognized for its role in the circulatory system rather than emotion.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                0.031,
+                8.499
+            ],
+            "keywords": [
+                "heart illustration",
+                "love letter"
+            ]
+        },
+        {
+            "id": 1,
+            "text": "Its main function is maintaining pressure gradients to ensure efficient blood circulation throughout the body.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                15.045,
+                24.893
+            ],
+            "keywords": [
+                "blood vessels diagram",
+                "pressure gauge"
+            ]
+        },
+        {
+            "id": 2,
+            "text": "Anatomy-wise, the heart is roughly fist-sized, located centrally within the chest cavity.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                102.226,
+                113.544
+            ],
+            "keywords": [
+                "human torso cross-section",
+                "fists comparison"
+            ]
+        },
+        {
+            "id": 3,
+            "text": "It comprises several chambers and valves that regulate blood flow, ensuring it moves efficiently.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                174.816,
+                186.837
+            ],
+            "keywords": [
+                "chamber structure diagram",
+                "valve animation"
+            ]
+        },
+        {
+            "id": 4,
+            "text": "Blood travels from the heart to the lungs via the pulmonary circuit, picking up oxygen before returning.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                309.063,
+                326.663
+            ],
+            "keywords": [
+                "lungs and heart diagram",
+                "capillary network"
+            ]
+        },
+        {
+            "id": 5,
+            "text": "From there, the systemic loop distributes oxygen-rich blood to the body’s tissues and collects deoxygenated blood.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                392.41,
+                414.262
+            ],
+            "keywords": [
+                "artery and vein illustrations",
+                "organ system map"
+            ]
+        },
+        {
+            "id": 6,
+            "text": "Understanding systolic and diastolic blood pressure measurements provides insight into cardiovascular health.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                483.336,
+                504.08
+            ],
+            "keywords": [
+                "sphygmomanometer image",
+                "blood pressure readings"
+            ]
+        },
+        {
+            "id": 7,
+            "text": "Maintaining optimal blood pressure is crucial for preventing serious conditions such as heart disease and stroke.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                525.871,
+                537.668
+            ],
+            "keywords": [
+                "stethoscope and ECG monitor",
+                "patient lying on hospital bed"
+            ]
+        }
+    ]
+}

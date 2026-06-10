@@ -1,0 +1,112 @@
+{
+    "video_id": "lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge",
+    "target_duration": 240,
+    "style": "informative",
+    "backend_used": "local",
+    "sentences": [
+        {
+            "id": 0,
+            "text": "Los Cuernos del Paine in Chile feature striking Oreo-like mountains drawing tourists.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                9.275,
+                13.537
+            ],
+            "keywords": [
+                "mountains resembling Oreos",
+                "tourists admiring landscape"
+            ]
+        },
+        {
+            "id": 1,
+            "text": "The rock cycle transforms Earth's materials, allowing rocks to change identities over time.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                42.86,
+                56.21
+            ],
+            "keywords": [
+                "rock cycle animation",
+                "changing rock identities"
+            ]
+        },
+        {
+            "id": 2,
+            "text": "Sedimentary rocks form from accumulated sediments, such as mud and sand, compacted over millennia.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                150.516,
+                171.661
+            ],
+            "keywords": [
+                "sediment accumulation illustration",
+                "compact sediment layers"
+            ]
+        },
+        {
+            "id": 3,
+            "text": "Igneous rocks result from cooling magma, forming distinctive formations like the light stripe on Los Cuernos.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                240.369,
+                274.777
+            ],
+            "keywords": [
+                "molten magma flow visualization",
+                "light stripe on mountain"
+            ]
+        },
+        {
+            "id": 4,
+            "text": "Metamorphic rocks emerge from existing rocks transformed by high temperatures and pressures.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                320.691,
+                352.41
+            ],
+            "keywords": [
+                "metamorphic transformation animation",
+                "high-pressure environment"
+            ]
+        },
+        {
+            "id": 5,
+            "text": "Weathering breaks down rocks into smaller pieces, contributing to the continuous rock cycle.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                419.862,
+                436.754
+            ],
+            "keywords": [
+                "weathering process demonstration",
+                "broken rock fragments"
+            ]
+        },
+        {
+            "id": 6,
+            "text": "Erosion transports weathered material, shaping landscapes and facilitating further rock transformations.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                460.967,
+                473.232
+            ],
+            "keywords": [
+                "erosion transport simulation",
+                "shaped landscape contours"
+            ]
+        },
+        {
+            "id": 7,
+            "text": "Understanding the rock cycle provides insights into geological processes shaping our planet.",
+            "estimated_duration_seconds": 7.0,
+            "source_timestamp_hint": [
+                476.854,
+                494.483
+            ],
+            "keywords": [
+                "global geological map",
+                "planet earth overview"
+            ]
+        }
+    ]
+}

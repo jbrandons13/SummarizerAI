@@ -1,0 +1,7 @@
+stage,wall_clock_min,peak_vram_gb
+P1 WhisperX,0.02,1.12
+P2 Qwen (Summarize+Storyboard) & Segmenter,0.10,1.12
+P3 Kokoro TTS,0.18,1.12
+P4 SDXL+IP-Adapter (Single w=0.2),5.39,18.25
+P5 Wan I2V + Assembly,225.80,15.58
+TOTAL,231.48,18.25

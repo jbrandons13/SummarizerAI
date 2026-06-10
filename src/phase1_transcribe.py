@@ -69,11 +69,20 @@ class TranscriptionPhase:
 
         # 3. Transcribe
         def load_whisper():
-            return whisperx.load_model(
-                self.config.get("model_name", "large-v3"), 
-                self.device, 
-                compute_type=self.compute_type
-            )
+            original_load = torch.load
+            def patched_load(*args, **kwargs):
+                kwargs['weights_only'] = False
+                return original_load(*args, **kwargs)
+            
+            torch.load = patched_load
+            try:
+                return whisperx.load_model(
+                    self.config.get("model_name", "large-v3"), 
+                    self.device, 
+                    compute_type=self.compute_type
+                )
+            finally:
+                torch.load = original_load
 
         if progress_callback:
             progress_callback.update(1, "Transcription", 20, "Loading WhisperX model")

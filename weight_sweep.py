@@ -49,6 +49,17 @@ def main():
     
     ref_image = Image.open(args.reference).convert("RGB")
     
+    if ref_image.size == (1, 1) and storyboard:
+        logger.info("Dummy reference image detected. Generating base reference from first shot (w=0.0).")
+        first_shot = storyboard[0].copy()
+        first_shot["id"] = first_shot["shot_id"]
+        if "phase4" not in config: config["phase4"] = {}
+        if "image_gen" not in config["phase4"]: config["phase4"]["image_gen"] = {}
+        config["phase4"]["image_gen"]["concept_anchor_ref_weight"] = 0.0
+        ref_image = generate_image(pipe, first_shot, "CONCEPT_ANCHOR", config, ref_image=None)
+        ref_image.save(args.reference)
+        logger.info(f"Saved real reference image to {args.reference}")
+    
     manifest = []
     
     for shot in storyboard:
