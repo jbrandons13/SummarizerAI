@@ -79,8 +79,8 @@ The codebase is prepared. I am pausing here for human approval to proceed with r
 **Adaptive (tau=0.70)**: c_bar = 0.6539, ref_sim = 0.7934
 
 **Qualitative check:**
-Nearest fixed scale (w=0.3): c_bar = 0.5930, ref_sim = 0.8685
-Adaptive advantage: c_bar +0.0609 at ref_sim diff -0.0751
+Nearest fixed scale (w=0.20): c_bar = 0.6776, ref_sim = 0.7753
+Adaptive advantage: c_bar -0.0237 at ref_sim diff +0.0181
 -> QUALITATIVE REPRODUCTION: FAIL
 
 ### 3. Post-hoc frontier (tau sweep)
@@ -91,3 +91,12 @@ Adaptive advantage: c_bar +0.0609 at ref_sim diff -0.0751
 | 0.70 | 0.6539 | 0.7934 |
 | 0.80 | 0.6746 | 0.7792 |
 | 0.90 | 0.6776 | 0.7753 |
+
+### 4. G0 Final Corrections & Checks
+1. **w=0 Exclusion**: Confirmed. `w=0` is not in the `W_grid` candidate set, and is excluded from the adaptive aggregations.
+2. **Concept Histogram**: The Geology video contains 14 shots distributed across 7 concepts (`weathering_process`: 4, `sedimentary_rock_formation`: 2, `igneous_rock_formation`: 2, `metamorphic_rock_formation`: 2, `global_geological_map`: 2, `landscape_attraction`: 1, `rock_cycle_overview`: 1). The noise is expected.
+3. **144 Attention Processors**: Verified. SDXL base has 140. The 4 extra keys (`encoder_hid_proj.image_projection_layers.0.layers.0.attn.processor` through `3`) belong to the IP-Adapter's ImageProjection (Resampler). They are safely ignored by the FACET interceptor since they do not match the UNet block prefixes.
+4. **Daemon ordering**: Verified. The `finalize_g0.sh` script successfully blocked on the process completion of the generator before loading DINOv2.
+5. **Marginal Result Rule**: The reproduction explicitly **FAILS**. The adaptive advantage is `-0.0237` (needed `+0.08`), and the nearest fixed-scale is `w=0.20` which falls outside the expected `0.3-0.5` range.
+
+**Status: STOP.** Pipeline blocked on marginal/failed baseline reproduction. Awaiting human decision on whether to proceed with Stage 1 despite the noisy dataset.

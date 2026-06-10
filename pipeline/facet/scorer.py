@@ -118,9 +118,6 @@ def main():
     print(f"**Adaptive (tau=0.70)**: c_bar = {ad_c_bar:.4f}, ref_sim = {ad_ref_sim:.4f}")
     
     # Check qualitative reproduction criteria
-    # best fixed scale lands in 0.3-0.5
-    # adaptive c_bar >= best-fixed c_bar + 0.08 at ref_sim within +/- 0.02
-    
     best_fixed = min([w for w in W_grid if 0.3 <= w <= 0.5], key=lambda w: abs(means_fixed[w][1] - ad_ref_sim))
     bf_c_bar, bf_ref_sim, _ = means_fixed[best_fixed]
     
@@ -144,8 +141,8 @@ def main():
                 w_star = max(valid_ws)
             ac.append(d[w_star]["metrics"]["c_s"])
             ar.append(d[w_star]["metrics"]["ref_sim"])
-        tc = sum(ac)/len(ac)
-        tr = sum(ar)/len(ar)
+        tc = sum(ac)/len(ac) if ac else float('nan')
+        tr = sum(ar)/len(ar) if ar else float('nan')
         print(f"| {t:.2f} | {tc:.4f} | {tr:.4f} |")
 
 
