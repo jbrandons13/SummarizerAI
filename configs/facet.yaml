@@ -1,0 +1,36 @@
+# configs/facet.yaml
+# Single source of truth for FACET experiments
+
+W_grid: [0.2, 0.3, 0.4, 0.5, 0.6, 0.8]
+tau: 0.70
+tau_prev: 0.70
+k_frac: 0.30
+probe_chunk: 4
+theta_copy_headline: 0.85
+K: 6
+
+s0: 0.30
+ramp: 0.10
+controller_clamp: [0.05, 0.90]
+controller_alpha: 0.3
+rho_star_grid: [0.10, 0.15, 0.20, 0.30, 0.40]
+
+fixed_w_grid_B1: [0.2, 0.3, 0.4, 0.5, 0.6]
+fixed_w_grid_B2_B3: [0.2, 0.3, 0.4, 0.6, 0.8]
+
+comp_leak_gate: "OFF"
+
+# DACA Baseline config inherited
+base_model: "stabilityai/stable-diffusion-xl-base-1.0"
+cartoon_lora_path: "models/loras/flat_color_anime_xl_v2.safetensors"
+cartoon_lora_weight: 0.8
+ip_adapter_repo: "h94/IP-Adapter"
+ip_adapter_subfolder: "sdxl_models"
+ip_adapter_weight: "ip-adapter-plus_sdxl_vit-h.safetensors"
+steps: 30
+guidance_scale: 7.0
+resolution: [1344, 768]
+scheduler: "EulerDiscreteScheduler"
+
+# Known ecology control shot (to be discovered/confirmed)
+ecology_control_shot: "shot_011"
