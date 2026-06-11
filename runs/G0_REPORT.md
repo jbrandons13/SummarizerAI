@@ -160,3 +160,5 @@ The G0 gate's deliverable is hereby restated as: **"Canonical measured baseline 
 **Amended Success Criteria for Later Stages:**
 * **P1 and Frontier Claims**: P1 and every frontier-win claim is judged against the **fixed-scale frontier** (the stronger baseline), with DACA-as-implemented plotted as the thesis-method curve alongside.
 * **Secondary Axes Discrimination**: Note also for the record: `mean_concept`'s dynamic range here is only ~0.05, so the (pairwise, c̄) secondary axis and the VLM judge will carry more discriminative weight in Stages 4–6 than originally assumed.
+* **Absolute-Level Note**: Legacy ecology mc = 0.310 vs v2 = 0.228 while the relative gap reproduces (−0.027 vs −0.031). Conclusion for the record: legacy absolute numbers are not comparable to the new harness anywhere; only relative patterns are.
+* **Aligned-DACA Caveat**: Both aligned-DACA variants select on the evaluation metric, so their `mean_concept` is optimistically biased (winner's curse). The δ-gate mitigates but does not remove this; final adjudication of any aligned-DACA claim must lean heavily on the secondary axes (pairwise, VLM judge) in later stages.
