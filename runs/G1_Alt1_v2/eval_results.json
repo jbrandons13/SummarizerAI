@@ -1,0 +1,28 @@
+{
+  "9": {
+    "calibration": {
+      "tau_prev": 0.38
+    },
+    "evaluation": {
+      "c_hat_spearman": 0.7428571428571429,
+      "mc_spearman": 0.2,
+      "max_w_agrm": 0.7857142857142857,
+      "max_w_agrm_non_mono": 1.0,
+      "bg_agrm": 0.7142857142857143,
+      "bg_agrm_non_mono": 1.0
+    }
+  },
+  "12": {
+    "calibration": {
+      "tau_prev": 0.38
+    },
+    "evaluation": {
+      "c_hat_spearman": 0.6,
+      "mc_spearman": 0.3142857142857143,
+      "max_w_agrm": 0.7857142857142857,
+      "max_w_agrm_non_mono": 1.0,
+      "bg_agrm": 0.7142857142857143,
+      "bg_agrm_non_mono": 1.0
+    }
+  }
+}
