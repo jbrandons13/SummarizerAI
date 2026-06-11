@@ -21,7 +21,7 @@ def main():
             return json.load(f)["shots"]
 
     geo_sb = get_prompts("lT_QAkL6lj0_where-do-rocks-come-from-crash-course-ge")
-    eco_sb = get_prompts("8JntNOAhKjM_crash-course-ecology-2")
+    eco_sb = get_prompts("2D7hZpIYlCA_hydrologic-carbon-cycles-crash-course-ecology")
     
     # 6 shots: 3 geo, 3 eco
     probe_shots = [
@@ -90,12 +90,10 @@ def main():
                 if site_name == "global":
                     pipe.set_ip_adapter_scale(w)
                 else:
-                    scales_dict = {}
-                    for proc_name in pipe.unet.attn_processors.keys():
-                        if "attn2" in proc_name:
-                            scales_dict[proc_name] = w if prefix in proc_name else 0.0
-                    pipe.set_ip_adapter_scale(scales_dict)
-                    
+                    pipe.set_ip_adapter_scale(1.0) # Reset all
+                    for proc_name, proc in pipe.unet.attn_processors.items():
+                        if "attn2" in proc_name and hasattr(proc, "scale"):
+                            proc.scale = [w] if prefix in proc_name else [0.0]
                 gen = torch.Generator("cuda").manual_seed(seed)
                 img = pipe(prompt=prompt, negative_prompt=neg, width=1344, height=768, num_inference_steps=30, guidance_scale=7.0, generator=gen, ip_adapter_image=ip_img).images[0]
                 img_path = f"runs/blockprobe/{shot_id}_{site_name}_w{w}.png"

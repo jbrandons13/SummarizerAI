@@ -69,7 +69,7 @@ def main():
             
             for w in weights:
                 pipe.set_ip_adapter_scale(w)
-                ip_img = _prep_reference(ref_image, mode="crop") if w > 0 else Image.new("RGB", (224, 224), "black")
+                ip_img = _prep_reference(ref_image, mode="crop")
                 
                 captured_pred_x0 = None
                 
