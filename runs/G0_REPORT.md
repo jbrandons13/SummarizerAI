@@ -194,10 +194,62 @@ The G0 gate's deliverable is hereby restated as: **"Canonical measured baseline 
 
 **Current Findings Recorded Verbatim:**
 * Ecology pairs verified in cache; geology pairs absent from all caches.
-* Geology v2 advantage = -0.056.
+* Geology v2 advantage = -0.056 (vs the matched fixed-0.2 point) / -0.0462 (vs the interpolated fixed frontier at exact matched `mc`).
+* Going forward, advantage computations are officially standardized to use the **interpolated fixed frontier** definition.
 
 **Amended Success Criteria for Later Stages:**
 * **P1 and Frontier Claims**: P1 and every frontier-win claim is judged against the **fixed-scale frontier** (the stronger baseline), with DACA-as-implemented plotted as the thesis-method curve alongside.
 * **Secondary Axes Discrimination**: Note also for the record: `mean_concept`'s dynamic range here is only ~0.05, so the (pairwise, c̄) secondary axis and the VLM judge will carry more discriminative weight in Stages 4–6 than originally assumed.
 * **Absolute-Level Note**: Legacy ecology mc = 0.310 vs v2 = 0.228 while the relative gap reproduces (−0.027 vs −0.031). Conclusion for the record: legacy absolute numbers are not comparable to the new harness anywhere; only relative patterns are.
-* **Aligned-DACA Caveat**: Both aligned-DACA variants select on the evaluation metric, so their `mean_concept` is optimistically biased (winner's curse). The δ-gate mitigates but does not remove this; final adjudication of any aligned-DACA claim must lean heavily on the secondary axes (pairwise, VLM judge) in later stages.
+* **Aligned-DACA Caveat**: Both aligned-DACA variants select on the evaluation metric, so their `mean_concept` is optimistically biased (winner's curse). The δ-gate mitigates but does not remove this. For example, Ecology v2 benefit-gated reaches `mc = 0.2304`, which is above the entire fixed frontier's range (`max 0.2275`) — an endpoint-clamped Δ representing the canonical signature of selecting on a noisy evaluation metric. Final adjudication of any aligned-DACA claim must lean heavily on the secondary axes (pairwise, VLM judge) in later stages.
+
+### Final G0 Addition: Pairwise Alignment
+The pre-registered axis-promotion rule: if `Spearman(w, pairwise) >= 0.8` AND `range(pairwise) >= 0.05` for $w>0$, pairwise is promoted to the primary consistency axis for Stages 2-6. The ecology `mc` table (non-monotone, range 0.016) motivated this rule.
+
+**Geology Legacy** (10 pairs)
+| w | pairwise |
+|---|---|
+| 0.00 | nan |
+| 0.20 | 0.7657 |
+| 0.30 | 0.8925 |
+| 0.40 | 0.7533 |
+| 0.50 | 0.9262 |
+| 0.60 | 0.7079 |
+| 0.80 | 0.6907 |
+*Spearman: -0.6000, Range: 0.2356 -> Promoted: False*
+
+**Geology Collided** (10 pairs)
+| w | pairwise |
+|---|---|
+| 0.00 | 0.4908 |
+| 0.20 | 0.8065 |
+| 0.30 | 0.8918 |
+| 0.40 | 0.9202 |
+| 0.50 | 0.9304 |
+| 0.60 | 0.9263 |
+| 0.80 | 0.9284 |
+*Spearman: 0.8286, Range: 0.1239 -> Promoted: True*
+
+**Geology v2** (10 pairs)
+| w | pairwise |
+|---|---|
+| 0.00 | 0.5637 |
+| 0.20 | 0.8246 |
+| 0.30 | 0.8766 |
+| 0.40 | 0.9034 |
+| 0.50 | 0.9021 |
+| 0.60 | 0.9350 |
+| 0.80 | 0.9515 |
+*Spearman: 0.9429, Range: 0.1269 -> Promoted: True*
+
+**Ecology v2** (25 pairs)
+| w | pairwise |
+|---|---|
+| 0.00 | 0.2882 |
+| 0.20 | 0.3824 |
+| 0.30 | 0.4889 |
+| 0.40 | 0.6280 |
+| 0.50 | 0.7788 |
+| 0.60 | 0.8931 |
+| 0.80 | 0.9509 |
+*Spearman: 1.0000, Range: 0.5685 -> Promoted: True*
