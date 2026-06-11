@@ -1,0 +1,21 @@
+Config: SDXL Base 1.0 (No LoRA)
+Resolution: 1024x1024
+StoryDiffusion id_length=4
+
+Heart:
+  Mean Concept CLIP-T: 0.2352
+  Mean Content Preserv: 0.7547
+  Inter-shot Sim (Consistent): 0.3502
+  Inter-shot Sim (Vanilla): 0.2959
+
+Sun:
+  Mean Concept CLIP-T: 0.2038
+  Mean Content Preserv: 0.7972
+  Inter-shot Sim (Consistent): 0.5761
+  Inter-shot Sim (Vanilla): 0.4716
+
+Geology:
+  Mean Concept CLIP-T: 0.2077
+  Mean Content Preserv: 0.6973
+  Inter-shot Sim (Consistent): 0.5898
+  Inter-shot Sim (Vanilla): 0.3623
