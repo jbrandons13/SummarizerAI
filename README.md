@@ -6,7 +6,20 @@
 [![CUDA 12.1](https://img.shields.io/badge/CUDA-12.1-76B900.svg)](https://developer.nvidia.com/cuda-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-An advanced, production-grade AI pipeline designed to transform long-form video podcasts into short, engaging highlight reels. This project integrates state-of-the-art multi-modal models for transcription, semantic analysis, neural voiceover, and intelligent B-roll retrieval, culminating in a fully automated video assembly process.
+An advanced, production-grade AI pipeline designed to transform long-form video podcasts into short, engaging highlight reels. This project integrates state-of-the-art multi-modal models for transcription, semantic analysis, neural voiceover, intelligent B-roll retrieval, and Image-to-Video (I2V) generation, culminating in a fully automated video assembly process.
+
+---
+
+## 🚀 Key Innovations (Main Branch)
+
+This repository holds the final codebase for the thesis project, featuring rigorous academic baselines, predictive anchoring, and scaled evaluation:
+
+*   **⚓ Predictive DACA (Dynamic Adaptive Concept Anchoring)**: Implemented offline validation and predictive weighting mechanisms for SDXL to maintain visual consistency across generated B-roll shots without manual tuning.
+*   **📚 Consistency Framework Baselines**: Integrated and evaluated external consistency frameworks like `ConsiStory` and `StoryDiffusion` as strong baselines to compare against our custom retrieval arms on a multi-dimensional fair-plane.
+*   **🎥 Image-to-Video (I2V) Integration**: Supports transforming generated B-roll images into dynamic video clips using models like **Wan I2V**, pushing the final summary video to a fully animated state.
+*   **⚖️ N=10 Scaled Evaluation & VLM Judge**: Scaled the end-to-end pipeline to process 10 full videos, incorporating an automated Vision-Language Model (VLM) as a judge to evaluate factualness, temporal coherence, and visual alignment.
+*   **🔍 Alt-1 Predictive Selection (VAE)**: Conducted forensic audits and validation of the structural selection mechanism using VAE-decode for optimized scene placement.
+*   **📈 Thesis Artifact Generation**: Comprehensive automated scripts to generate contact sheets, scatter plots, and aggregated CSV metrics for final thesis reporting.
 
 ---
 
@@ -19,8 +32,8 @@ An advanced, production-grade AI pipeline designed to transform long-form video 
     - **Arm A (Random)**: Baseline for evaluation.
     - **Arm B (Caption-Cosine)**: Cross-modal matching using **Qwen2.5-VL** captions and Sentence-Transformers.
     - **Arm C (SigLIP 2 Direct)**: Zero-shot vision-language retrieval using Google's **SigLIP 2**.
-*   **🎬 Automated Video Assembly**: Precise frame-level muxing with **FFmpeg**, featuring silence padding (200ms), re-encoding (H.264 CRF 20), and burned-in subtitles.
-*   **📊 Evaluation Framework**: Automated metrics including **ROUGE-L**, **BERTScore**, and **CLIPScore**, complemented by an **LLM-as-Judge** scoring system.
+*   **🎬 Automated Video Assembly**: Precise frame-level muxing with **FFmpeg**, featuring silence padding (200ms), I2V workflows, re-encoding (H.264 CRF 20), and burned-in subtitles.
+*   **📊 Evaluation Framework**: Automated metrics including **ROUGE-L**, **BERTScore**, and **CLIPScore** (plus DINOv2 content preservation), complemented by an **LLM-as-Judge** scoring system.
 *   **💻 Modern Web Interface**: A sleek React-based dashboard with real-time WebSocket progress tracking and comparative evaluation metrics.
 
 ---
@@ -29,22 +42,23 @@ An advanced, production-grade AI pipeline designed to transform long-form video 
 
 ```mermaid
 graph TD
-    A[Input Video] --> B[Phase 1: Ingestion & WhisperX Transcription]
-    B --> C[Phase 2: LLM Summarization & Scripting]
+    A[Input Video] --> B[Phase 1: Ingestion & WhisperX]
+    B --> C[Phase 2: LLM Summarization]
     C --> D[Phase 3: Neural Voiceover Generation]
     D --> E[Phase 4: Semantic B-roll Retrieval]
-    E --> F[Phase 5: Automated Video Assembly]
-    F --> G[Final Summary Video]
-    G --> H[Phase 6: Automated Evaluation]
     
     subgraph "Retrieval Arms"
         E1[Arm A: Random]
         E2[Arm B: Qwen2.5-VL + Cosine]
         E3[Arm C: SigLIP 2 Direct]
+        E4[Dynamic Adaptive Concept Anchoring]
     end
-    E --- E1
-    E --- E2
-    E --- E3
+    E --> E1 & E2 & E3 & E4
+    
+    E1 & E2 & E3 & E4 --> E5[Optional: I2V Generation]
+    E5 --> F[Phase 5: Automated Video Assembly]
+    F --> G[Final Summary Video]
+    G --> H[Phase 6: Automated Evaluation]
 ```
 
 ---
@@ -66,8 +80,9 @@ A core component of this project is the comparative analysis of visual retrieval
 ### Backend
 - **Core**: Python 3.11, FastAPI, Pydantic
 - **ML/AI**: Torch 2.5.1, Transformers, WhisperX, Open-CLIP, SigLIP 2
+- **Image & Video Gen**: SDXL (with DACA), ConsiStory, StoryDiffusion, Wan I2V
 - **Video/Audio**: FFmpeg (via `ffmpeg-python`), `pyscenedetect`, `librosa`
-- **Evaluation**: `rouge-score`, `bert-score`, `clip-score`
+- **Evaluation**: `rouge-score`, `bert-score`, `clip-score`, DINOv2
 
 ### Frontend
 - **Framework**: React 18, Vite
@@ -82,7 +97,8 @@ The pipeline includes a robust evaluation suite to measure the quality of genera
 
 1.  **Information Quality**: ROUGE-L and BERTScore against original transcript.
 2.  **Visual Alignment**: CLIPScore between summary script and retrieved B-roll.
-3.  **Human-like Judgment**: LLM-as-Judge (using Llama 3.3 70B) scoring Information, Factualness, and Visuals on a 1-5 scale.
+3.  **Concept & Content Consistency**: Evaluated using CLIP-T for concept alignment and DINOv2 for content preservation across shots.
+4.  **Human-like Judgment**: LLM-as-Judge (using Llama 3.3 70B / Qwen2.5) scoring Information, Factualness, and Visuals on a 1-5 scale.
 
 ---
 
@@ -97,15 +113,15 @@ The pipeline includes a robust evaluation suite to measure the quality of genera
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-username/video-summarizer-ai.git
-   cd video-summarizer-ai
+   git clone https://github.com/jbrandons13/SummarizerAI.git
+   cd SummarizerAI
    ```
 
 2. **Environment Setup**
    ```bash
    # Create conda environment or venv
-   python3.11 -m venv venv
-   source venv/bin/activate
+   conda create -n sumarizer python=3.11
+   conda activate sumarizer
    pip install --upgrade pip
    pip install .
    # Note: transformers must be installed from source for SigLIP 2 support
@@ -148,7 +164,8 @@ video-summarizer/
 ├── configs/            # YAML configuration for pipeline parameters
 ├── results/            # Ablation study results, plots, and stats
 ├── data/               # Persistent storage for raw/processed assets
-└── tests/              # Comprehensive test suite
+├── tests/              # Comprehensive test suite
+└── consistory/         # ConsiStory baseline implementation scripts
 ```
 
 ---
@@ -159,4 +176,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-*This project was developed as part of a thesis exploring multi-modal AI applications in automated content creation.*
+*This project was developed as part of a thesis exploring multi-modal AI applications in automated content creation, including advanced retrieval and consistency frameworks.*
