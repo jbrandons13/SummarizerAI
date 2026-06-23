@@ -28,10 +28,10 @@ This repository holds the final codebase for the thesis project, featuring rigor
 *   **🎙️ Precision Transcription**: Powered by **WhisperX** (large-v3) for word-level timestamps and robust audio alignment.
 *   **🧠 Intelligent Scripting**: Utilizes **Llama 3.3 (via Groq)** or local **Qwen2.5-14B** to identify semantic highlights and generate concise summary scripts.
 *   **🗣️ Neural Voiceover**: High-fidelity speech synthesis using **Kokoro v1.0** (ONNX) for natural-sounding narration.
-*   **🔍 Semantic Visual Retrieval (3-Arm Strategy)**: 
-    - **Arm A (Random)**: Baseline for evaluation.
-    - **Arm B (Caption-Cosine)**: Cross-modal matching using **Qwen2.5-VL** captions and Sentence-Transformers.
-    - **Arm C (SigLIP 2 Direct)**: Zero-shot vision-language retrieval using Google's **SigLIP 2**.
+*   **🔍 B-Roll Generation & Consistency**: 
+    - **Plain SDXL**: Un-anchored baseline.
+    - **StoryDiffusion & ConsiStory**: State-of-the-art training-free consistency frameworks for comparison.
+    - **Predictive DACA**: Our novel dynamic adaptive concept anchoring method using IP-Adapter.
 *   **🎬 Automated Video Assembly**: Precise frame-level muxing with **FFmpeg**, featuring silence padding (200ms), I2V workflows, re-encoding (H.264 CRF 20), and burned-in subtitles.
 *   **📊 Evaluation Framework**: Automated metrics including **ROUGE-L**, **BERTScore**, and **CLIPScore** (plus DINOv2 content preservation), complemented by an **LLM-as-Judge** scoring system.
 *   **💻 Modern Web Interface**: A sleek React-based dashboard with real-time WebSocket progress tracking and comparative evaluation metrics.
@@ -45,13 +45,13 @@ graph TD
     A[Input Video] --> B[Phase 1: Ingestion & WhisperX]
     B --> C[Phase 2: LLM Summarization]
     C --> D[Phase 3: Neural Voiceover Generation]
-    D --> E[Phase 4: Semantic B-roll Retrieval]
+    D --> E[Phase 4: B-Roll Generation & Consistency]
     
-    subgraph "Retrieval Arms"
-        E1[Arm A: Random]
-        E2[Arm B: Qwen2.5-VL + Cosine]
-        E3[Arm C: SigLIP 2 Direct]
-        E4[Dynamic Adaptive Concept Anchoring]
+    subgraph "Generative Consistency Baselines"
+        E1[Baseline: Plain SDXL]
+        E2[Baseline: StoryDiffusion]
+        E3[Baseline: ConsiStory]
+        E4[Proposed: Predictive DACA]
     end
     E --> E1 & E2 & E3 & E4
     
@@ -63,15 +63,16 @@ graph TD
 
 ---
 
-## 🧪 The 3-Arm Retrieval Strategy
+## 🧪 Generative Consistency Frameworks
 
-A core component of this project is the comparative analysis of visual retrieval methods:
+A core component of this project is the comparative analysis of training-free consistency methods during Phase 4 (B-Roll Generation):
 
-| Arm | Method | Tech Stack | Characteristics |
+| Framework | Method / Focus | Tech Stack | Characteristics |
 | :--- | :--- | :--- | :--- |
-| **Arm A** | Random | `numpy.random` | Baseline control. |
-| **Arm B** | Caption-Cosine | `Qwen2.5-VL-7B` + `Sentence-Transformers` | Semantic bridge via natural language descriptions. |
-| **Arm C** | SigLIP 2 Direct | `google/siglip2-so400m` | Direct vision-language embedding alignment. |
+| **Plain SDXL** | Un-anchored | `SDXL base 1.0` | Baseline control; measures unguided concept similarity. |
+| **StoryDiffusion** | Shared Attention | `SDXL` + `StoryDiffusion` | Enforces consistency via attention-sharing across the batch. |
+| **ConsiStory** | Shared Attention + Injection | `SDXL` + `ConsiStory` | Subject-driven shared-attention block plus feature injection. |
+| **Predictive DACA** | Dynamic IP-Adapter | `SDXL` + `IP-Adapter` | Varies anchoring weight per-shot based on predictive content-preservation. |
 
 ---
 
