@@ -119,10 +119,10 @@ def load_narration(script_path, order):
         print(f"  [no script at {script_path}; subtitles will be empty]")
         return texts
     data = json.load(open(script_path))
-    segs = data.get("segments") or data.get("shots") or (data if isinstance(data, list) else [])
+    segs = data.get("sentences") or data.get("segments") or data.get("shots") or (data if isinstance(data, list) else [])
     by_id = {}
     for s in segs:
-        k = s.get("shot_id") or s.get("id")
+        k = f"shot_{s.get('id'):03d}" if 'id' in s else s.get("shot_id")
         if k is not None:
             by_id[str(k)] = s.get("text", "")
     if any(o in by_id for o in order):            # shot_ids line up directly
@@ -153,16 +153,16 @@ def main():
     ap.add_argument("--w", type=int, default=832)
     ap.add_argument("--h", type=int, default=480)
     ap.add_argument("--steps", type=int, default=None)
-    ap.add_argument("--i2v-timeout", type=int, default=2400)
+    ap.add_argument("--i2v-timeout", type=int, default=7200)
     ap.add_argument("--only", nargs="*", default=None, help="subset of shot_ids (smoke)")
     ap.add_argument("--force", action="store_true", help="re-render even if clip exists")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
     sb = json.load(open(args.storyboard))
-    shots = sb["shots"] if isinstance(sb, dict) and "shots" in sb else sb
-    order = [s.get("shot_id") or s.get("id") for s in shots]
-    prompt_by = {(s.get("shot_id") or s.get("id")): (s.get("i2v_prompt") or s.get("image_prompt", "")) for s in shots}
+    shots = sb.get("shots") or sb.get("segments") or sb.get("sentences") or (sb if isinstance(sb, list) else [])
+    order = [f"shot_{s.get('id'):03d}" if 'id' in s else s.get("shot_id") for s in shots]
+    prompt_by = { (f"shot_{s.get('id'):03d}" if 'id' in s else s.get("shot_id")): (s.get("i2v_prompt") or s.get("image_prompt") or (", ".join(s.get("keywords", [])) if s.get("keywords") else s.get("text", ""))) for s in shots }
     if args.only: order = [s for s in order if s in args.only]
     if args.all_i2v:                       # full generative: every shot animated, no Ken Burns
         method_by = {s: "i2v" for s in order}
@@ -170,7 +170,7 @@ def main():
         method_by = json.load(open(args.plan))["method_by_shot"]
     os.makedirs(args.work, exist_ok=True)
     if not args.dry_run: os.makedirs(args.comfy_input, exist_ok=True)
-    wf_template = json.load(open(args.workflow))
+    wf_template = json.load(open(args.workflow)) if "i2v" in method_by.values() else {}
     # subtitles: per-shot narration text. shots.json (segmenter) holds shot_id -> the exact spoken
     # fragment for each shot; summary_script.json is sentence-level (wrong ids), so prefer shots.json.
     shots_json = os.path.join(os.path.dirname(os.path.abspath(args.storyboard)), "shots.json")
@@ -183,6 +183,8 @@ def main():
         method = method_by.get(sid, "ken_burns")
         still = os.path.join(args.images_dir, f"{sid}.png")
         wav = os.path.join(args.audio_dir, f"{sid}.wav")
+        if not os.path.exists(wav):
+            wav = os.path.join(args.audio_dir, f"sentence_{int(sid.split('_')[1]):03d}.wav")
         dur = wav_seconds(wav) if (os.path.exists(wav) and not args.dry_run) else None
         frames_i2v = snap_len_up(round((dur or 3.0) * args.fps))
         motion = MOTIONS[idx % len(MOTIONS)]

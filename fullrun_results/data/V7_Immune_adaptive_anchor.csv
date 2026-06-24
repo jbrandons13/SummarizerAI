@@ -1,0 +1,23 @@
+concept_text,"""a colorful cartoon illustration of the immune system, white blood cells defending the body"""
+tau,0.7
+
+shot,adaptive_w*,content_at_w*(sim_to_own),concept_at_w*(CLIP)
+"""shot_001""",1.0,0.8854,0.1648
+"""shot_002""",0.0,1.0000,0.1627
+"""shot_003""",0.1,0.7139,0.1371
+"""shot_004""",0.0,1.0000,0.2172
+"""shot_005""",0.2,0.7125,0.1441
+"""shot_006""",0.0,1.0000,0.1655
+"""shot_007""",0.1,0.8547,0.2870
+"""shot_008""",0.0,1.0000,0.1287
+"""shot_009""",0.0,1.0000,0.2751
+"""shot_010""",0.0,1.0000,0.2045
+"""shot_011""",0.0,1.0000,0.2531
+"""shot_012""",0.1,0.7351,0.1799
+"""shot_013""",0.1,0.8163,0.1467
+"""shot_014""",0.1,0.7353,0.1951
+"""shot_015""",0.0,1.0000,0.2470
+"""shot_016""",0.1,0.8706,0.1303
+
+scheme,mean_concept(CLIP),mean_content(sim_to_own)
+"""adaptive""",0.1899,0.8952

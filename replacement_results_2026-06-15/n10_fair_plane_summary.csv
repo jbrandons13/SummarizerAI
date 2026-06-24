@@ -1,0 +1,11 @@
+Video_ID,Topic_Name,Mean_Concept_CLIP,Mean_Content_Sim
+V1,Geology,0.3386,0.7899
+V2,Ecology,0.3095,0.8284
+V3,Sun,0.2510,0.7988
+V4,Heart,0.2573,0.8564
+V6,BlackHole,0.2866,0.8370
+V10,Neuron,0.2523,0.8258
+V11,Volcano,0.2828,0.8428
+V12,Eye,0.2840,0.8074
+V13,Hurricane,0.3217,0.8009
+V15,River,0.2831,1.0000

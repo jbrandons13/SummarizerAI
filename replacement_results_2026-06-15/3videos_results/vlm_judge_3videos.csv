@@ -1,0 +1,7 @@
+video,method,content_fidelity,same_scene,near_duplicate,n_shots,n_pairs
+Eye,DACA,0.625,1.0,0.25,16,15
+Eye,Fixed w=1.0,0.375,1.0,0.3125,16,15
+Hurricane,DACA,0.5625,0.9333333333333333,0.625,16,15
+Hurricane,Fixed w=1.0,0.4375,1.0,0.75,16,15
+Reef,DACA,0.375,1.0,0.0,16,15
+Reef,Fixed w=1.0,0.625,1.0,0.0,16,15

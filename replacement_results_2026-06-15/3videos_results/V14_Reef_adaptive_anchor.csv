@@ -1,0 +1,23 @@
+concept_text,"""a colorful cartoon illustration of a coral reef, an underwater ecosystem of corals and fish"""
+tau,0.7
+
+shot,adaptive_w*,content_at_w*(sim_to_own),concept_at_w*(CLIP)
+"""shot_001""",1.0,0.8989,0.3216
+"""shot_002""",1.0,0.9095,0.3238
+"""shot_003""",1.0,0.8990,0.3147
+"""shot_004""",1.0,0.8813,0.3073
+"""shot_005""",1.0,0.9142,0.3138
+"""shot_006""",1.0,0.8970,0.3202
+"""shot_007""",1.0,0.8793,0.3133
+"""shot_008""",1.0,0.8422,0.3254
+"""shot_009""",1.0,0.9291,0.3093
+"""shot_010""",1.0,0.9388,0.3153
+"""shot_011""",1.0,0.9107,0.3179
+"""shot_012""",1.0,0.9111,0.3057
+"""shot_013""",1.0,0.8796,0.3125
+"""shot_014""",1.0,0.9069,0.3151
+"""shot_015""",1.0,0.8887,0.3257
+"""shot_016""",1.0,0.8734,0.3152
+
+scheme,mean_concept(CLIP),mean_content(sim_to_own)
+"""adaptive""",0.3160,0.8975

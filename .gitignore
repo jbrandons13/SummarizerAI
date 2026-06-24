@@ -31,3 +31,19 @@ archive/contaminated/
 data/output_old/
 \~/
 ~/
+
+# DACA project large artifacts
+runs/
+outputs/
+15videos_results/
+external_baseline_*/
+comparison/
+gate_check/
+thesis_figures_2026-06-15/
+
+# Scratch & brief files
+tmp_*
+temp_*
+*.txt
+!requirements.txt
+GEMINI_BRIEF_*.md

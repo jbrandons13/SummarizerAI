@@ -1,0 +1,23 @@
+concept_text,"""a colorful cartoon illustration of a black hole, a dark region in space with strong gravity"""
+tau,0.7
+
+shot,adaptive_w*,content_at_w*(sim_to_own),concept_at_w*(CLIP)
+"""shot_001""",0.1,0.8495,0.2616
+"""shot_002""",0.1,0.8588,0.2264
+"""shot_003""",1.0,0.8681,0.2869
+"""shot_004""",0.8,0.7214,0.3119
+"""shot_005""",1.0,0.8916,0.3053
+"""shot_006""",1.0,0.8789,0.2970
+"""shot_007""",1.0,0.8596,0.2927
+"""shot_008""",1.0,0.7761,0.2910
+"""shot_009""",1.0,0.9594,0.2854
+"""shot_010""",0.0,1.0000,0.2982
+"""shot_011""",1.0,0.7103,0.3117
+"""shot_012""",0.1,0.8297,0.3049
+"""shot_013""",0.1,0.8688,0.2427
+"""shot_014""",1.0,0.8356,0.2866
+"""shot_015""",0.3,0.7562,0.2922
+"""shot_016""",0.1,0.7280,0.2908
+
+scheme,mean_concept(CLIP),mean_content(sim_to_own)
+"""adaptive""",0.2866,0.8370

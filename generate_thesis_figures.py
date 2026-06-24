@@ -110,6 +110,7 @@ plt.grid(alpha=0.3)
 plt.legend()
 plt.tight_layout()
 plt.savefig("thesis_figures/V5_iPhone_collapse_curve.png", dpi=150)
+plt.savefig("thesis_figures/V5_iPhone_collapse_curve.pdf", dpi=150)
 plt.close()
 
 # Deliverable 4
@@ -156,6 +157,7 @@ for i, sid in enumerate(shots):
         ax.axis("off")
 
 plt.savefig("thesis_figures/V4_Heart_weight_sweep_proof.png", dpi=300, bbox_inches='tight', pad_inches=0.02)
+plt.savefig("thesis_figures/V4_Heart_weight_sweep_proof.pdf", dpi=300, bbox_inches='tight', pad_inches=0.02)
 plt.close()
 
 # Deliverable 5 CSV

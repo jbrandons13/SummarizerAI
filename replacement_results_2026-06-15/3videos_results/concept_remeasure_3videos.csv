@@ -1,0 +1,4 @@
+Video,Concept Text,Mean CLIP w=0.2,Mean CLIP w=0.4,Mean CLIP w=0.6,Mean CLIP w*
+Eye,"a colorful cartoon illustration of a human eye, the organ of sight",0.2874,0.2882,0.2910,0.2840
+Hurricane,"a colorful cartoon illustration of a hurricane, a large swirling storm system",0.3130,0.3243,0.3246,0.3217
+Reef,"a colorful cartoon illustration of a coral reef, an underwater ecosystem of corals and fish",0.3107,0.3137,0.3130,0.3160

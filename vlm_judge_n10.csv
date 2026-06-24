@@ -1,0 +1,13 @@
+video,method,content_fidelity,same_scene,near_duplicate,n_shots,n_pairs
+BlackHole,DACA,0.5,0.9333333333333333,0.125,16,15
+BlackHole,Fixed w=1.0,0.5,1.0,0.0625,16,15
+Immune,DACA,0.5625,0.0,0.5,16,15
+Immune,Fixed w=1.0,0.4375,1.0,0.0625,16,15
+DNA,DACA,0.75,0.13333333333333333,0.3125,16,15
+DNA,Fixed w=1.0,0.25,1.0,0.0,16,15
+Photosynthesis,DACA,0.75,0.4,0.25,16,15
+Photosynthesis,Fixed w=1.0,0.25,1.0,0.0,16,15
+Neuron,DACA,0.875,0.7333333333333333,0.1875,16,15
+Neuron,Fixed w=1.0,0.125,1.0,0.0,16,15
+Volcano,DACA,0.5,0.4666666666666667,0.25,16,15
+Volcano,Fixed w=1.0,0.5,1.0,0.0625,16,15

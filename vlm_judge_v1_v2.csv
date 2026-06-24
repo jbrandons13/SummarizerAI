@@ -1,0 +1,5 @@
+video,method,content_fidelity,same_scene,near_duplicate,n_shots,n_pairs
+Geology,DACA,1.0,0.5,0.3333333333333333,3,2
+Geology,Fixed w=1.0,0.0,1.0,0.0,3,2
+Ecology,DACA,1.0,1.0,0.0,3,2
+Ecology,Fixed w=1.0,0.0,1.0,0.0,3,2

@@ -1,0 +1,23 @@
+concept_text,"""a colorful cartoon illustration of a neuron, a nerve cell that transmits signals"""
+tau,0.7
+
+shot,adaptive_w*,content_at_w*(sim_to_own),concept_at_w*(CLIP)
+"""shot_001""",0.1,0.8030,0.2332
+"""shot_002""",0.3,0.7132,0.3093
+"""shot_003""",0.2,0.7607,0.2316
+"""shot_004""",0.3,0.7145,0.2634
+"""shot_005""",0.1,0.8955,0.1990
+"""shot_006""",0.0,1.0000,0.1805
+"""shot_007""",0.4,0.7542,0.2183
+"""shot_008""",0.2,0.8250,0.2886
+"""shot_009""",1.0,0.9513,0.2118
+"""shot_010""",0.2,0.7160,0.2579
+"""shot_011""",0.2,0.8974,0.3041
+"""shot_012""",0.2,0.9144,0.2567
+"""shot_013""",0.2,0.7257,0.2809
+"""shot_014""",0.2,0.8171,0.2736
+"""shot_015""",0.2,0.7246,0.2679
+"""shot_016""",0.0,1.0000,0.2597
+
+scheme,mean_concept(CLIP),mean_content(sim_to_own)
+"""adaptive""",0.2523,0.8258
